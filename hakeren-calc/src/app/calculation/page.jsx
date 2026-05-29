@@ -13,7 +13,7 @@ const INITIAL = {
   empSource:[],pikadon:'',address:'',
   empFirstName:'',empFamilyName:'',empAddress:'',empCell:'',empHome:'',
   empContact:[],empContactName:'',empContactPhone:'',
-  start:'',end:'',termReason:[],resignReason:[],noticeDate:'',
+  start:'',end:'',termReason:'',resignReason:[],noticeDate:'',
   noticeDaysGiven:'0',shiva:'0',
   salary:'',salaryIncreases:[],
   shabat:'',pocketMoney:'',liveType:'',
@@ -51,11 +51,11 @@ async function submitToMake(f) {
     empContactPhone: f.empContactPhone,
     start: f.start,
     end: f.end,
-    termReason: Array.isArray(f.termReason) ? f.termReason[0] || '' : f.termReason,
+    termReason: f.termReason,
     resignReason: Array.isArray(f.resignReason) ? f.resignReason[0] || '' : f.resignReason,
     noticeDate: f.noticeDate,
     noticeDaysGiven: Number(f.noticeDaysGiven) || 0,
-    shiva: f.termReason.includes('died') ? Number(f.shiva) || 0 : 0,
+    shiva: f.termReason === 'died' ? Number(f.shiva) || 0 : 0,
     salary: Number(f.salary),
     salaryIncreases: f.salaryIncreases.filter(si => si.newSal && si.date).map(si => ({newSal: Number(si.newSal), date: si.date})),
     pocketMoney: Number(f.pocketMoney) || 0,
@@ -114,7 +114,7 @@ async function submitToMake(f) {
       resignation_reason: f.resignReason,
       notice_date: f.noticeDate,
       notice_days_given: Number(f.noticeDaysGiven) || 0,
-      shiva_days: f.termReason.includes('died') ? Number(f.shiva) || 0 : 0,
+      shiva_days: f.termReason === 'died' ? Number(f.shiva) || 0 : 0,
       employment_type: f.liveType,
       works_weekends: f.worksWeekends,
       weekends_per_month: f.worksWeekends === 'yes' ? f.weekendsPerMonth : null
@@ -196,8 +196,8 @@ function validatePage(page, f) {
     if (!f.start)                   errs.start = 'Start date is required';
     if (!f.end)                     errs.end = 'End date is required';
     if (f.start && f.end && f.end < f.start) errs.end = 'End date must be after start date';
-    if (f.termReason.length === 0)  errs.termReason = 'Select at least one reason';
-    if (f.termReason.includes('resign') && f.resignReason.length === 0)
+    if (!f.termReason)              errs.termReason = 'Select a reason';
+    if (f.termReason === 'resign' && f.resignReason.length === 0)
                                     errs.resignReason = 'Please select reason for resignation';
     if (!f.noticeDate)              errs.noticeDate = 'Notice date is required';
     if (!f.salary)                  errs.salary = 'Salary is required';
@@ -584,15 +584,15 @@ export default function App() {
               </div>
               <div className="field">
                 <label style={{fontWeight:700,color:'#1565c0'}}>Reason of Termination <span className="req-star">*</span></label>
-                <ChkGrp opts={termOpts} vals={f.termReason} on={v=>set('termReason',v)}/>
+                <Chips opts={termOpts} val={f.termReason} on={v=>set('termReason',v)} hasErr={showErrs&&!f.termReason}/>
                 <Err msg={E('termReason')}/>
               </div>
-              {f.termReason.includes('resign')&&<div className="field">
+              {f.termReason==='resign'&&<div className="field">
                 <label style={{fontWeight:700,color:'#1565c0'}}>Why did you resign? <span className="req-star">*</span></label>
                 <ChkGrp opts={resignOpts} vals={f.resignReason} on={v=>set('resignReason',v)}/>
                 <Err msg={E('resignReason')}/>
               </div>}
-              {f.termReason.includes('died')&&<F label="How many shiva (mourning) days did you stay?" hint="0 if you didn't stay for shiva">
+              {f.termReason==='died'&&<F label="How many shiva (mourning) days did you stay?" hint="0 if you didn't stay for shiva">
                 <input {...inp('shiva')} type="number" min="0" max="7" value={f.shiva} onChange={e=>set('shiva',e.target.value)} placeholder="0-7"/>
               </F>}
               <F label="When did you provide or receive advance notice?" req err={E('noticeDate')}>
