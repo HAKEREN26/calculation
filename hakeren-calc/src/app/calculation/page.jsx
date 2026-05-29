@@ -9,18 +9,21 @@ const YNW = [{v:'yes',l:'Yes'},{v:'no',l:'No'},{v:'less1year',l:"Working less th
 
 const INITIAL = {
   name:'',phone:'',email:'',passport:'',nationality:'',
+  passportFile:null,passportFileName:'',
   empSource:[],pikadon:'',address:'',
   empFirstName:'',empFamilyName:'',empAddress:'',empCell:'',empHome:'',
   empContact:[],empContactName:'',empContactPhone:'',
   start:'',end:'',termReason:[],resignReason:[],noticeDate:'',
+  noticeDaysGiven:'0',shiva:'0',
   salary:'',salaryIncreases:[],
-  shabat:'',pocketMoney:'0',liveType:'',
+  shabat:'',pocketMoney:'',liveType:'',
   worksWeekends:'',weekendsPerMonth:'1',
   vacations:[{paid:'',dep:'',ret:''}],
-  recuperation:'',recuperationDate:'',
-  annualLeavePaid:'',annualLeaveDate:'',
-  holidaysPaid:'',holidaysDate:'',
-  pensionPaid:'',severancePaid:'',
+  recuperationDate:'',
+  annualLeaveDate:'',
+  holidaysDate:'',
+  holidayType:'',holidayDaysWorked:'',
+  existingPension:'',pensionPaid:'',severancePaid:'',
   firstEmployment:'',ownerRent:'',agreement:'',
   comments:'',
 };
@@ -29,9 +32,56 @@ const WEBHOOK_URL = "https://hook.eu1.make.com/0oubj2kli3e49csk3rrxnobvsj52hxuj"
 
 async function submitToMake(f) {
   const payload = {
+    // Flat fields for GAS calculation engine
+    name: f.name,
+    phone: f.phone,
+    email: f.email,
+    passport: f.passport,
+    nationality: f.nationality,
+    empSource: f.empSource,
+    pikadon: f.pikadon,
+    address: f.address,
+    empFirstName: f.empFirstName,
+    empFamilyName: f.empFamilyName,
+    empAddress: f.empAddress,
+    empCell: f.empCell,
+    empHome: f.empHome,
+    empContact: f.empContact,
+    empContactName: f.empContactName,
+    empContactPhone: f.empContactPhone,
+    start: f.start,
+    end: f.end,
+    termReason: Array.isArray(f.termReason) ? f.termReason[0] || '' : f.termReason,
+    resignReason: Array.isArray(f.resignReason) ? f.resignReason[0] || '' : f.resignReason,
+    noticeDate: f.noticeDate,
+    noticeDaysGiven: Number(f.noticeDaysGiven) || 0,
+    shiva: f.termReason.includes('died') ? Number(f.shiva) || 0 : 0,
+    salary: Number(f.salary),
+    salaryIncreases: f.salaryIncreases.filter(si => si.newSal && si.date).map(si => ({newSal: Number(si.newSal), date: si.date})),
+    pocketMoney: Number(f.pocketMoney) || 0,
+    liveType: f.liveType,
+    worksWeekends: f.worksWeekends === 'yes',
+    weekendsPerMonth: f.worksWeekends === 'yes' ? Number(f.weekendsPerMonth) : 0,
+    vacations: f.vacations.filter(v => v.paid === 'yes' || v.paid === 'no').map(v => ({paid: v.paid, dep: v.dep, ret: v.ret})),
+    existingPension: f.existingPension === 'yes',
+    pensionPaid: f.pensionPaid,
+    severancePaid: f.severancePaid,
+    holidayType: f.holidayType,
+    holidayDaysWorked: Number(f.holidayDaysWorked) || 0,
+    holidaysLastDate: f.holidaysDate || null,
+    recuperationLastDate: f.recuperationDate || null,
+    annualLeaveLastDate: f.annualLeaveDate || null,
+    firstEmployment: f.firstEmployment,
+    ownerRent: f.ownerRent,
+    agreement: f.agreement,
+    comments: f.comments || '',
+    shabat: f.shabat ? Number(f.shabat) : null,
+    passportFile: f.passportFile || null,
+    passportFileName: f.passportFileName || null,
+    // Nested structure for record keeping
     meta: {
       submitted_at: new Date().toISOString(),
-      form_version: "1.0",
+      form_version: "1.1",
       source: "hakeren-calculation-form"
     },
     worker: {
@@ -63,6 +113,8 @@ async function submitToMake(f) {
       termination_reason: f.termReason,
       resignation_reason: f.resignReason,
       notice_date: f.noticeDate,
+      notice_days_given: Number(f.noticeDaysGiven) || 0,
+      shiva_days: f.termReason.includes('died') ? Number(f.shiva) || 0 : 0,
       employment_type: f.liveType,
       works_weekends: f.worksWeekends,
       weekends_per_month: f.worksWeekends === 'yes' ? f.weekendsPerMonth : null
@@ -85,12 +137,12 @@ async function submitToMake(f) {
       return_date: v.ret || null
     })),
     benefits: {
-      recuperation_paid: f.recuperation,
       recuperation_last_date: f.recuperationDate || null,
-      annual_leave_paid: f.annualLeavePaid,
       annual_leave_last_date: f.annualLeaveDate || null,
-      holidays_paid: f.holidaysPaid,
       holidays_last_date: f.holidaysDate || null,
+      holiday_type: f.holidayType,
+      holiday_days_worked: Number(f.holidayDaysWorked) || 0,
+      existing_pension: f.existingPension,
       pension_paid: f.pensionPaid,
       severance_paid: f.severancePaid
     },
@@ -167,15 +219,14 @@ function validatePage(page, f) {
         if (v.dep && v.ret && v.ret < v.dep) errs[`vac_${i}_ret`] = 'Return must be after departure';
       }
     });
-    if (!f.recuperation)            errs.recuperation = 'Please answer recuperation question';
-    if (f.recuperation === 'yes' && !f.recuperationDate) errs.recuperationDate = 'Date required';
+    // recuperationDate is optional — leave empty if never received
   }
 
   if (page === 4) {
-    if (!f.annualLeavePaid)         errs.annualLeavePaid = 'Please answer this question';
-    if (f.annualLeavePaid === 'yes' && !f.annualLeaveDate) errs.annualLeaveDate = 'Date required';
-    if (!f.holidaysPaid)            errs.holidaysPaid = 'Please answer this question';
-    if (f.holidaysPaid === 'yes' && !f.holidaysDate) errs.holidaysDate = 'Date required';
+    // annualLeaveDate and holidaysDate are optional — leave empty if never received
+    if (!f.holidayType)             errs.holidayType = 'Please select your holiday type';
+    if (f.holidayDaysWorked === '' || f.holidayDaysWorked === undefined) errs.holidayDaysWorked = 'Please enter number of holiday days (0-9)';
+    if (!f.existingPension)         errs.existingPension = 'Please answer this question';
     if (!f.pensionPaid)             errs.pensionPaid = 'Please answer this question';
     if (!f.severancePaid)           errs.severancePaid = 'Please answer this question';
     if (!f.firstEmployment)         errs.firstEmployment = 'Please answer this question';
@@ -198,7 +249,8 @@ const css = `
   .hk-hero p{font-size:13px;color:#444;line-height:1.7;margin-bottom:8px}
   .hk-hero p.b{font-weight:700;color:#1565c0}
   .pay-notice{background:#fff8e1;border:1px solid #ffd54f;border-left:4px solid #f9a825;border-radius:6px;padding:12px 16px;margin-bottom:18px;font-size:13px;line-height:1.6;color:#5d4037}
-  .pay-notice strong{display:block;margin-bottom:4px;color:#e65100}
+  .pay-notice strong:first-child{display:block;margin-bottom:4px}
+  .pay-notice strong{color:#e65100}
   .draft-bar{display:flex;align-items:center;gap:10px;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#2e7d32}
   .draft-bar button{padding:5px 12px;border:1px solid #2e7d32;border-radius:4px;background:#fff;color:#2e7d32;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600}
   .fc{border:1px solid #cdd8e8;border-radius:4px;overflow:hidden;margin-bottom:20px}
@@ -280,6 +332,40 @@ export default function App() {
     return () => clearInterval(id);
   }, [f]);
 
+  const langMap = [
+    {code:'',label:'English (Original)'},
+    {code:'tl',label:'Tagalog'},
+    {code:'ro',label:'Romanian'},
+    {code:'uk',label:'Ukrainian'},
+    {code:'ru',label:'Russian'},
+    {code:'zh-CN',label:'Chinese'},
+    {code:'si',label:'Sinhala'},
+    {code:'hi',label:'Hindi'},
+    {code:'ar',label:'Arabic'},
+    {code:'fil',label:'Filipino'},
+    {code:'th',label:'Thai'},
+    {code:'id',label:'Indonesian'},
+    {code:'vi',label:'Vietnamese'},
+    {code:'he',label:'Hebrew'},
+  ];
+  useEffect(() => {
+    if (window.googleTranslateElementInit) return;
+    document.cookie = 'googtrans=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.documentElement.lang = 'en';
+    window.googleTranslateElementInit = function() {
+      new window.google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'tl,ro,uk,ru,zh-CN,si,hi,ar,fil,th,id,vi,he',
+        layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    };
+    const s = document.createElement('script');
+    s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit&hl=en';
+    s.async = true;
+    document.head.appendChild(s);
+  }, []);
+
   const saveDraft = () => {
     localStorage.setItem(DRAFT_KEY, JSON.stringify({data:f, savedAt:new Date().toISOString()}));
     setSavedAt(new Date().toLocaleTimeString());
@@ -316,7 +402,7 @@ export default function App() {
   const termOpts = [{v:'died',l:'Employer Died'},{v:'fired',l:'Got Fired'},{v:'resign',l:'Resigned'}];
   const resignOpts = [{v:'nopay',l:"They didn't pay me"},{v:'sick',l:"I'm sick (medical)"},{v:'harassment',l:'Sexual harassment'},{v:'other',l:'Other reason'}];
   const contactOpts = [{v:'son',l:'Son'},{v:'daughter',l:'Daughter'},{v:'niece',l:'Niece/Nephew'},{v:'wife',l:'Wife'},{v:'husband',l:'Husband'},{v:'social',l:'Social Worker'}];
-  const pocketOpts = ['0','100','200','300','400','500','600','700','800','900','1000'];
+  const holidayTypeOpts = [{v:'jewish',l:'Jewish'},{v:'christian',l:'Christian'},{v:'muslim',l:'Muslim'},{v:'druze',l:'Druze'}];
   const inp = (k, extra) => ({
     style: {width:'100%',padding:'9px 11px',border:`1.5px solid ${showErrs&&errs[k]?'#e53935':'#ccc'}`,borderRadius:5,fontSize:13,fontFamily:'inherit',color:'#222',background:showErrs&&errs[k]?'#fff5f5':'#fafafa',outline:'none'},
     ...extra
@@ -345,10 +431,28 @@ export default function App() {
   return (
     <>
       <style>{css}</style>
-      <div id="google_translate_element" style={{position:'fixed',top:8,right:8,zIndex:9999}}/>
       <div className="hk-hdr" ref={topRef}>
         <img src={LOGO_B64} alt="Hakeren"/>
-        <span style={{fontSize:11,color:'#1565c0',fontWeight:600}}>Worker Rights Calculation</span>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <div id="google_translate_element" className="notranslate" translate="no" style={{position:'absolute',left:'-9999px'}}/>
+          <select className="notranslate" translate="no" style={{fontSize:12,padding:'4px 8px',borderRadius:6,border:'1px solid #90caf9',color:'#1565c0',fontWeight:600,cursor:'pointer'}} onChange={e=>{
+            const code = e.target.value;
+            if (!code) {
+              document.cookie='googtrans=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+              document.cookie='googtrans=;path=/;domain='+window.location.hostname+';expires=Thu, 01 Jan 1970 00:00:00 GMT';
+              window.location.reload();
+              return;
+            }
+            document.cookie='googtrans=/en/'+code+';path=/';
+            document.cookie='googtrans=/en/'+code+';path=/;domain='+window.location.hostname;
+            const sel=document.querySelector('#google_translate_element select');
+            if(sel){sel.value=code;sel.dispatchEvent(new Event('change'));}
+            else window.location.reload();
+          }}>
+            {langMap.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}
+          </select>
+          <span style={{fontSize:11,color:'#1565c0',fontWeight:600}}>Worker Rights Calculation</span>
+        </div>
       </div>
       <div className="progress-bar"><div className="progress-fill" style={{width:`${pct}%`}}/></div>
 
@@ -361,8 +465,8 @@ export default function App() {
 
         <div className="pay-notice">
           <strong>⚠️ Important — Payment Notice</strong>
-          Results will be sent by email <strong>only to those who have paid by credit card (Upay)</strong>.<br/>
-          If you wish to pay by <strong>cash or bank transfer</strong>, please contact the Hakeren office directly before submitting this form.
+          <span>Results will be sent by email <span style={{color:'#e65100',fontWeight:700}}>only to those who have paid by credit card (Upay)</span>. If you wish to pay by <span style={{color:'#e65100',fontWeight:700,textDecoration:'underline'}}>cash or bank transfer</span>, please contact the Hakeren office directly before submitting this form.</span>
+          <span style={{display:'block',marginTop:8,fontWeight:600}}>📞 Phone: 050-5750054 | Phone: 072-2243333</span>
         </div>
 
         {savedAt&&<div className="draft-bar">
@@ -400,7 +504,15 @@ export default function App() {
                 <input {...inp('passport')} value={f.passport} onChange={e=>set('passport',e.target.value)} placeholder="Passport number"/>
               </F>
               <F label="Upload Your Passport Photo">
-                <input type="file" accept="image/*,.pdf" style={{fontSize:13}}/>
+                <input type="file" accept="image/*,.pdf" style={{fontSize:13}} onChange={e=>{
+                  const file=e.target.files[0];
+                  if(!file)return;
+                  if(file.size>5*1024*1024){alert('File too large (max 5MB)');e.target.value='';return;}
+                  const reader=new FileReader();
+                  reader.onload=()=>{setF(p=>({...p,passportFile:reader.result,passportFileName:file.name}));};
+                  reader.readAsDataURL(file);
+                }}/>
+                {f.passportFileName&&<span style={{fontSize:12,color:'#388e3c',marginTop:4,display:'block'}}>✓ {f.passportFileName}</span>}
               </F>
               <F label="Choose Your Nationality" req err={E('nationality')}>
                 <select {...inp('nationality')} value={f.nationality} onChange={e=>set('nationality',e.target.value)}>
@@ -480,12 +592,28 @@ export default function App() {
                 <ChkGrp opts={resignOpts} vals={f.resignReason} on={v=>set('resignReason',v)}/>
                 <Err msg={E('resignReason')}/>
               </div>}
+              {f.termReason.includes('died')&&<F label="How many shiva (mourning) days did you stay?" hint="0 if you didn't stay for shiva">
+                <input {...inp('shiva')} type="number" min="0" max="7" value={f.shiva} onChange={e=>set('shiva',e.target.value)} placeholder="0-7"/>
+              </F>}
               <F label="When did you provide or receive advance notice?" req err={E('noticeDate')}>
                 <input {...inp('noticeDate')} type="date" value={f.noticeDate} onChange={e=>set('noticeDate',e.target.value)}/>
               </F>
-              <F label="What is your full salary (₪)?" req err={E('salary')}>
-                <input {...inp('salary')} type="number" min="0" value={f.salary} onChange={e=>set('salary',e.target.value)} placeholder="Amount in ₪"/>
+              <F label="How many advance notice days were given?" req hint="Enter 0 if no advance notice was given">
+                <input {...inp('noticeDaysGiven')} type="number" min="0" max="30" value={f.noticeDaysGiven} onChange={e=>set('noticeDaysGiven',e.target.value)} placeholder="0"/>
               </F>
+              <p style={{fontSize:14,fontWeight:700,color:'#1565c0',margin:'14px 0 4px'}}>Monthly Salary</p>
+              <p style={{fontSize:12,color:'#555',marginBottom:10,lineHeight:1.5,background:'#f5f5f5',padding:'8px 12px',borderRadius:8,border:'1px solid #e0e0e0'}}>
+                💡 Your <strong>total salary</strong> = base salary + pocket money.<br/>
+                Shabbat payment is calculated separately and is not part of the base salary.
+              </p>
+              <div className="g2">
+                <F label="Base salary per month (₪)" req err={E('salary')}>
+                  <input {...inp('salary')} type="number" min="0" value={f.salary} onChange={e=>set('salary',e.target.value)} placeholder="Amount in ₪"/>
+                </F>
+                <F label="Pocket money per month (₪)" hint="Enter 0 if none">
+                  <input {...inp('pocketMoney')} type="number" min="0" value={f.pocketMoney} onChange={e=>set('pocketMoney',e.target.value)} placeholder="Amount in ₪"/>
+                </F>
+              </div>
 
               <p style={{fontSize:14,fontWeight:700,color:'#1565c0',margin:'14px 0 8px'}}>Salary Updates</p>
               {f.salaryIncreases.map((si,i)=><div key={i} className="sal-blk">
@@ -501,16 +629,9 @@ export default function App() {
               </div>)}
               <button className="add-btn" onClick={addSI}>+ Add salary increase</button>
 
-              <div className="g2" style={{marginTop:14}}>
-                <F label="SHABAT payment (₪)" err={E('shabat')}>
-                  <input {...inp('shabat')} type="number" min="0" value={f.shabat} onChange={e=>set('shabat',e.target.value)} placeholder="₪"/>
-                </F>
-                <F label="Pocket money per month (₪)">
-                  <select {...inp('pocketMoney')} value={f.pocketMoney} onChange={e=>set('pocketMoney',e.target.value)}>
-                    {pocketOpts.map(o=><option key={o} value={o}>{o==='0'?'0 (None)':o+' ₪'}</option>)}
-                  </select>
-                </F>
-              </div>
+              <F label="SHABAT payment (₪)" hint="Separate from your base salary" err={E('shabat')} style={{marginTop:14}}>
+                <input {...inp('shabat')} type="number" min="0" value={f.shabat} onChange={e=>set('shabat',e.target.value)} placeholder="₪"/>
+              </F>
 
               <div className="field">
                 <label style={{fontWeight:700,color:'#1565c0'}}>Do you live at the workplace? <span className="req-star">*</span></label>
@@ -549,34 +670,37 @@ export default function App() {
               </div>)}
               <button className="add-btn" onClick={addV}>+ Add vacation</button>
 
-              <div className="field" style={{marginTop:14}}>
-                <label style={{fontWeight:700,color:'#c62828'}}>Did they pay you Recuperation (Avra'a)? <span className="req-star">*</span></label>
-                <Chips val={f.recuperation} on={v=>set('recuperation',v)} opts={YNW} hasErr={showErrs&&errs.recuperation}/>
-                <Err msg={E('recuperation')}/>
-              </div>
-              {f.recuperation==='yes'&&<F label="Most recent recuperation payment date" req err={E('recuperationDate')}>
+              <F label="When was the last date you received Recuperation (Avra'a) payment?" hint="Leave empty if you never received it" err={E('recuperationDate')} style={{marginTop:14}}>
                 <input {...inp('recuperationDate')} type="date" value={f.recuperationDate} onChange={e=>set('recuperationDate',e.target.value)}/>
-              </F>}
+              </F>
             </>}
 
             {/* ═══ PAGE 4 ═══ */}
             {page===4&&<>
-              <div className="field">
-                <label style={{fontWeight:700,color:'#1565c0'}}>Have you been paid for your annual leave? <span className="req-star">*</span></label>
-                <Chips val={f.annualLeavePaid} on={v=>set('annualLeavePaid',v)} opts={YNW} hasErr={showErrs&&errs.annualLeavePaid}/>
-                <Err msg={E('annualLeavePaid')}/>
-              </div>
-              {f.annualLeavePaid==='yes'&&<F label="Date of most recent annual leave payment" req err={E('annualLeaveDate')}>
+              <F label="When was the last date you received annual leave (vacation) payment?" hint="Leave empty if you never received it" err={E('annualLeaveDate')}>
                 <input {...inp('annualLeaveDate')} type="date" value={f.annualLeaveDate} onChange={e=>set('annualLeaveDate',e.target.value)}/>
-              </F>}
-              <div className="field" style={{marginTop:12}}>
-                <label style={{fontWeight:700,color:'#1565c0'}}>Have you been compensated for religious/national holidays? <span className="req-star">*</span></label>
-                <Chips val={f.holidaysPaid} on={v=>set('holidaysPaid',v)} opts={YNW} hasErr={showErrs&&errs.holidaysPaid}/>
-                <Err msg={E('holidaysPaid')}/>
-              </div>
-              {f.holidaysPaid==='yes'&&<F label="Date of most recent holiday payment" req err={E('holidaysDate')}>
+              </F>
+              <F label="Which holidays do you celebrate?" req err={E('holidayType')}>
+                <select {...inp('holidayType')} value={f.holidayType} onChange={e=>set('holidayType',e.target.value)}>
+                  <option value="">Select your holidays</option>
+                  <option value="jewish">Jewish / יהודי</option>
+                  <option value="christian">Christian / נוצרי</option>
+                  <option value="muslim">Muslim / מוסלמי</option>
+                  <option value="druze">Druze / דרוזי</option>
+                </select>
+              </F>
+              <F label="When was the last date you received holiday payment?" hint="Leave empty if you never received it" err={E('holidaysDate')} style={{marginTop:12}}>
                 <input {...inp('holidaysDate')} type="date" value={f.holidaysDate} onChange={e=>set('holidaysDate',e.target.value)}/>
-              </F>}
+              </F>
+              <F label="How many holiday days were you paid from the beginning of the civil year until today?" req err={E('holidayDaysWorked')} hint="Maximum 9 days per year">
+                <input {...inp('holidayDaysWorked')} type="number" min="0" max="9" value={f.holidayDaysWorked} onChange={e=>set('holidayDaysWorked',e.target.value)} placeholder="0-9"/>
+              </F>
+              <div className="field" style={{marginTop:12}}>
+                <label style={{fontWeight:700,color:'#1565c0'}}>Did you have an existing pension arrangement before starting this job? <span className="req-star">*</span></label>
+                <Chips val={f.existingPension} on={v=>set('existingPension',v)} opts={YN} hasErr={showErrs&&errs.existingPension}/>
+                <Err msg={E('existingPension')}/>
+                <p className="hint">If yes, pension is calculated from day 1. If no, pension starts from month 7.</p>
+              </div>
               <div className="g2" style={{marginTop:12}}>
                 <div className="field">
                   <label style={{fontWeight:700,color:'#1565c0'}}>Did you get paid for Pension? <span className="req-star">*</span></label>
@@ -658,16 +782,6 @@ export default function App() {
         </div>
       </div>
 
-      <script dangerouslySetInnerHTML={{__html:`
-        function googleTranslateElementInit(){
-          new google.translate.TranslateElement({
-            pageLanguage:'en',
-            includedLanguages:'tl,ro,uk,ru,zh-CN,si,hi,ar,fil,th,id,vi',
-            layout:google.translate.TranslateElement.InlineLayout.SIMPLE
-          },'google_translate_element');
-        }
-      `}}/>
-      <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"/>
     </>
   );
 }
