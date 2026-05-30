@@ -25,6 +25,7 @@ const INITIAL = {
   holidayType:'',holidayDaysWorked:'',
   existingPension:'',pensionPaid:'',severancePaid:'',
   firstEmployment:'',ownerRent:'',agreement:'',
+  agreementFile:null,agreementFileName:'',
   comments:'',
 };
 
@@ -52,7 +53,7 @@ async function submitToMake(f) {
     start: f.start,
     end: f.end,
     termReason: f.termReason,
-    resignReason: Array.isArray(f.resignReason) ? f.resignReason[0] || '' : f.resignReason,
+    resignReason: Array.isArray(f.resignReason) ? f.resignReason : [f.resignReason].filter(Boolean),
     noticeDate: f.noticeDate,
     noticeDaysGiven: Number(f.noticeDaysGiven) || 0,
     shiva: f.termReason === 'died' ? Number(f.shiva) || 0 : 0,
@@ -74,6 +75,8 @@ async function submitToMake(f) {
     firstEmployment: f.firstEmployment,
     ownerRent: f.ownerRent,
     agreement: f.agreement,
+    agreementFile: f.agreementFile || null,
+    agreementFileName: f.agreementFileName || null,
     comments: f.comments || '',
     shabat: f.shabat ? Number(f.shabat) : null,
     passportFile: f.passportFile || null,
@@ -150,6 +153,8 @@ async function submitToMake(f) {
       first_employment_in_israel: f.firstEmployment,
       employer_owns_or_rents: f.ownerRent,
       signed_employment_agreement: f.agreement,
+      agreement_file: f.agreementFile || null,
+      agreement_file_name: f.agreementFileName || null,
       comments: f.comments || null
     }
   };
@@ -729,7 +734,15 @@ export default function App() {
                 <Err msg={E('agreement')}/>
               </div>
               {f.agreement==='yes'&&<F label="Upload your employment agreement:">
-                <input type="file" accept=".pdf,.doc,.docx,image/*" style={{fontSize:13}}/>
+                <input type="file" accept=".pdf,.doc,.docx,image/*" style={{fontSize:13}} onChange={e=>{
+                  const file=e.target.files[0];
+                  if(!file)return;
+                  if(file.size>5*1024*1024){alert('File too large (max 5MB)');e.target.value='';return;}
+                  const reader=new FileReader();
+                  reader.onload=()=>{setF(p=>({...p,agreementFile:reader.result,agreementFileName:file.name}));};
+                  reader.readAsDataURL(file);
+                }}/>
+                {f.agreementFileName&&<span style={{fontSize:12,color:'#388e3c',marginTop:4,display:'block'}}>✓ {f.agreementFileName}</span>}
               </F>}
               <F label="Additional comments or information:">
                 <textarea {...inp('comments')} style={{...inp('comments').style,minHeight:80,resize:'vertical'}} value={f.comments} onChange={e=>set('comments',e.target.value)}/>
