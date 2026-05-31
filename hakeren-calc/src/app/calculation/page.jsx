@@ -224,11 +224,11 @@ function validatePage(page, f) {
         if (v.dep && v.ret && v.ret < v.dep) errs[`vac_${i}_ret`] = 'Return must be after departure';
       }
     });
-    // recuperationDate is optional ΓÇö leave empty if never received
+    // recuperationDate is optional -leave empty if never received
   }
 
   if (page === 4) {
-    // annualLeaveDate and holidaysDate are optional ΓÇö leave empty if never received
+    // annualLeaveDate and holidaysDate are optional -leave empty if never received
     if (!f.holidayType)             errs.holidayType = 'Please select your holiday type';
     if (f.holidayDaysWorked === '' || f.holidayDaysWorked === undefined) errs.holidayDaysWorked = 'Please enter number of holiday days (0-9)';
     if (!f.existingPension)         errs.existingPension = 'Please answer this question';
@@ -270,7 +270,7 @@ const css = `
   .field input:focus,.field select:focus,.field textarea:focus{border-color:#1565c0;background:#fff}
   .field input.err,.field select.err{border-color:#e53935 !important;background:#fff5f5}
   .field .errmsg{color:#e53935;font-size:11px;margin-top:3px;display:flex;align-items:center;gap:4px}
-  .field .errmsg::before{content:'ΓÜá';font-size:10px}
+  .field .errmsg::before{content:'!';font-size:10px}
   .field select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%231565c0' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
   .hint{font-size:11px;color:#888;margin-top:3px}
   .req-star{color:#e53935}
@@ -423,14 +423,14 @@ export default function App() {
       <style>{css}</style>
       <div className="hk-hdr"><img src={LOGO_B64} alt="Hakeren"/></div>
       <div className="pw" style={{textAlign:'center',paddingTop:60}}>
-        <div style={{fontSize:56,marginBottom:20}}>Γ£à</div>
+        <div style={{fontSize:56,marginBottom:20,color:'#4caf50'}}>V</div>
         <h2 style={{fontSize:22,color:'#1565c0',marginBottom:12}}>Form Submitted Successfully</h2>
         <p style={{fontSize:14,color:'#444',lineHeight:1.7}}>Your calculation is being processed.<br/>Results will be sent to: <strong>{f.email}</strong></p>
       </div>
       <div className="hk-ftr">
         <p>All calculation forms for foreign workers' rights in Israel created by the Foundation are exclusively owned and protected by copyright.</p>
-        <p>All rights reserved by the Israeli Foundation for Foreign Worker Rights. ┬⌐</p>
-        <p>All forms for Social Benefits Calculation for foreign workers in Israel created by Hakeren are proprietary and copyrighted materials. Any unauthorized reproduction, copying, or duplication of content from this website or the forms provided is strictly prohibited. Hakeren reserves all rights. ┬⌐</p>
+        <p>All rights reserved by the Israeli Foundation for Foreign Worker Rights. (C)</p>
+        <p>All forms for Social Benefits Calculation for foreign workers in Israel created by Hakeren are proprietary and copyrighted materials. Any unauthorized reproduction, copying, or duplication of content from this website or the forms provided is strictly prohibited. Hakeren reserves all rights. (C)</p>
       </div>
     </>
   );
@@ -471,27 +471,27 @@ export default function App() {
         </div>
 
         <div className="pay-notice">
-          <strong>ΓÜá∩╕Å Important ΓÇö Payment Notice</strong>
+          <strong>Important - Payment Notice</strong>
           <span>Results will be sent by email <span style={{color:'#e65100',fontWeight:700}}>only to those who have paid by credit card (Upay)</span>. If you wish to pay by <span style={{color:'#e65100',fontWeight:700,textDecoration:'underline'}}>cash or bank transfer</span>, please contact the Hakeren office directly before submitting this form.</span>
-          <span style={{display:'block',marginTop:8,fontWeight:600}}>≡ƒô₧ Phone: 050-5750054 | Phone: 072-2243333</span>
+          <span style={{display:'block',marginTop:8,fontWeight:600}}>Phone: 050-5750054 | Phone: 072-2243333</span>
         </div>
 
         {savedAt&&<div className="draft-bar">
-          <span>Γ£à Draft auto-saved at {savedAt}</span>
+          <span>Draft auto-saved at {savedAt}</span>
           <button onClick={()=>{if(confirm('Clear draft?')){localStorage.removeItem(DRAFT_KEY);setF(INITIAL);setSavedAt(null);}}}>Clear</button>
         </div>}
 
         {/* Error banner */}
         {showErrs && hasErrs && <div className="err-banner">
-          <strong>ΓÜá∩╕Å Please complete all required fields before continuing</strong>
-          {Object.values(errs).slice(0,3).map((e,i)=><div key={i}>ΓÇó {e}</div>)}
-          {Object.keys(errs).length>3&&<div>ΓÇó ...and {Object.keys(errs).length-3} more</div>}
+          <strong>Please complete all required fields before continuing</strong>
+          {Object.values(errs).slice(0,3).map((e,i)=><div key={i}>-{e}</div>)}
+          {Object.keys(errs).length>3&&<div>-...and {Object.keys(errs).length-3} more</div>}
         </div>}
 
         <div className="fc">
           <div className="fc-hdr">
-            <span>Page {page} of 4 ΓÇö {pageTitle}</span>
-            <button onClick={saveDraft} style={{padding:'4px 12px',fontSize:11,border:'1px solid rgba(255,255,255,0.5)',borderRadius:3,background:'rgba(255,255,255,0.15)',color:'#fff',cursor:'pointer',fontFamily:'inherit'}}>≡ƒÆ╛ Save draft</button>
+            <span>Page {page} of 4 - {pageTitle}</span>
+            <button onClick={saveDraft} style={{padding:'4px 12px',fontSize:11,border:'1px solid rgba(255,255,255,0.5)',borderRadius:3,background:'rgba(255,255,255,0.15)',color:'#fff',cursor:'pointer',fontFamily:'inherit'}}>Save draft</button>
           </div>
           <div className="fc-body">
 
@@ -519,7 +519,7 @@ export default function App() {
                   reader.onload=()=>{setF(p=>({...p,passportFile:reader.result,passportFileName:file.name}));};
                   reader.readAsDataURL(file);
                 }}/>
-                {f.passportFileName&&<span style={{fontSize:12,color:'#388e3c',marginTop:4,display:'block'}}>Γ£ô {f.passportFileName}</span>}
+                {f.passportFileName&&<span style={{fontSize:12,color:'#388e3c',marginTop:4,display:'block'}}>{f.passportFileName}</span>}
               </F>
               <F label="Choose Your Nationality" req err={E('nationality')}>
                 <select {...inp('nationality')} value={f.nationality} onChange={e=>set('nationality',e.target.value)}>
@@ -610,24 +610,24 @@ export default function App() {
               </F>
               <p style={{fontSize:14,fontWeight:700,color:'#1565c0',margin:'14px 0 4px'}}>Monthly Salary</p>
               <p style={{fontSize:12,color:'#555',marginBottom:10,lineHeight:1.5,background:'#f5f5f5',padding:'8px 12px',borderRadius:8,border:'1px solid #e0e0e0'}}>
-                ≡ƒÆí Your <strong>total salary</strong> = base salary + pocket money.<br/>
+                Your <strong>total salary</strong> = base salary + pocket money.<br/>
                 Shabbat payment is calculated separately and is not part of the base salary.
               </p>
               <div className="g2">
-                <F label="Base salary per month (Γé¬)" req err={E('salary')}>
-                  <input {...inp('salary')} type="number" min="0" value={f.salary} onChange={e=>set('salary',e.target.value)} placeholder="Amount in Γé¬"/>
+                <F label="Base salary per month (NIS)" req err={E('salary')}>
+                  <input {...inp('salary')} type="number" min="0" value={f.salary} onChange={e=>set('salary',e.target.value)} placeholder="Amount in NIS"/>
                 </F>
-                <F label="Pocket money per month (Γé¬)" hint="Enter 0 if none">
-                  <input {...inp('pocketMoney')} type="number" min="0" value={f.pocketMoney} onChange={e=>set('pocketMoney',e.target.value)} placeholder="Amount in Γé¬"/>
+                <F label="Pocket money per month (NIS)" hint="Enter 0 if none">
+                  <input {...inp('pocketMoney')} type="number" min="0" value={f.pocketMoney} onChange={e=>set('pocketMoney',e.target.value)} placeholder="Amount in NIS"/>
                 </F>
               </div>
 
               <p style={{fontSize:14,fontWeight:700,color:'#1565c0',margin:'14px 0 8px'}}>Salary Updates</p>
               {f.salaryIncreases.map((si,i)=><div key={i} className="sal-blk">
-                <button className="rm" onClick={()=>rmSI(i)}>├ù</button>
+                <button className="rm" onClick={()=>rmSI(i)}>X</button>
                 <div className="g2">
-                  <F label={`New salary #${i+1} (Γé¬)`} err={E(`si_${i}_sal`)}>
-                    <input {...inp(`si_${i}_sal`)} type="number" min="0" value={si.newSal} onChange={e=>updSI(i,'newSal',e.target.value)} placeholder="Γé¬"/>
+                  <F label={`New salary #${i+1} (NIS)`} err={E(`si_${i}_sal`)}>
+                    <input {...inp(`si_${i}_sal`)} type="number" min="0" value={si.newSal} onChange={e=>updSI(i,'newSal',e.target.value)} placeholder="NIS"/>
                   </F>
                   <F label="Effective from date" err={E(`si_${i}_date`)}>
                     <input {...inp(`si_${i}_date`)} type="date" value={si.date} onChange={e=>updSI(i,'date',e.target.value)}/>
@@ -636,13 +636,13 @@ export default function App() {
               </div>)}
               <button className="add-btn" onClick={addSI}>+ Add salary increase</button>
 
-              <F label="SHABAT payment (Γé¬)" hint="Separate from your base salary" err={E('shabat')} style={{marginTop:14}}>
-                <input {...inp('shabat')} type="number" min="0" value={f.shabat} onChange={e=>set('shabat',e.target.value)} placeholder="Γé¬"/>
+              <F label="SHABAT payment (NIS)" hint="Separate from your base salary" err={E('shabat')} style={{marginTop:14}}>
+                <input {...inp('shabat')} type="number" min="0" value={f.shabat} onChange={e=>set('shabat',e.target.value)} placeholder="NIS"/>
               </F>
 
               <div className="field">
                 <label style={{fontWeight:700,color:'#1565c0'}}>Do you live at the workplace? <span className="req-star">*</span></label>
-                <Chips val={f.liveType} on={v=>set('liveType',v)} opts={[{v:'livein',l:'Live in'},{v:'liveout_clean',l:'Live out ΓÇö Cleaning'},{v:'construction',l:'Construction'}]} hasErr={showErrs&&errs.liveType}/>
+                <Chips val={f.liveType} on={v=>set('liveType',v)} opts={[{v:'livein',l:'Live in'},{v:'liveout_clean',l:'Live out - Cleaning'},{v:'construction',l:'Construction'}]} hasErr={showErrs&&errs.liveType}/>
                 <Err msg={E('liveType')}/>
               </div>
               <div className="field">
@@ -659,11 +659,11 @@ export default function App() {
               <p style={{fontSize:14,fontWeight:700,color:'#1565c0',margin:'16px 0 4px'}}>Vacations in Home Country</p>
               <p style={{fontSize:12,color:'#666',marginBottom:10}}>For each vacation period, indicate whether you received payment and provide the dates.</p>
               {f.vacations.map((v,i)=><div key={i} className="vac-blk">
-                {f.vacations.length>1&&<button className="rm" onClick={()=>rmV(i)}>├ù</button>}
+                {f.vacations.length>1&&<button className="rm" onClick={()=>rmV(i)}>X</button>}
                 <p style={{fontSize:13,fontWeight:700,color:'#1565c0',marginBottom:10}}>Vacation {i+1}</p>
                 <div className="field">
                   <label>Did you get paid for this vacation? <span className="req-star">*</span></label>
-                  <Chips val={v.paid} on={val=>updV(i,'paid',val)} opts={[{v:'yes',l:'Yes ΓÇö paid'},{v:'no',l:'No ΓÇö not paid'},{v:'notvac',l:"I wasn't on vacation"}]} hasErr={showErrs&&errs[`vac_${i}_paid`]}/>
+                  <Chips val={v.paid} on={val=>updV(i,'paid',val)} opts={[{v:'yes',l:'Yes - paid'},{v:'no',l:'No - not paid'},{v:'notvac',l:"I wasn't on vacation"}]} hasErr={showErrs&&errs[`vac_${i}_paid`]}/>
                   <Err msg={E(`vac_${i}_paid`)}/>
                 </div>
                 {(v.paid==='yes'||v.paid==='no')&&<div className="g2" style={{marginTop:8}}>
@@ -690,10 +690,10 @@ export default function App() {
               <F label="Which holidays do you celebrate?" req err={E('holidayType')}>
                 <select {...inp('holidayType')} value={f.holidayType} onChange={e=>set('holidayType',e.target.value)}>
                   <option value="">Select your holidays</option>
-                  <option value="jewish">Jewish / ╫Ö╫ö╫ò╫ô╫Ö</option>
-                  <option value="christian">Christian / ╫á╫ò╫ª╫¿╫Ö</option>
-                  <option value="muslim">Muslim / ╫₧╫ò╫í╫£╫₧╫Ö</option>
-                  <option value="druze">Druze / ╫ô╫¿╫ò╫û╫Ö</option>
+                  <option value="jewish">Jewish</option>
+                  <option value="christian">Christian</option>
+                  <option value="muslim">Muslim</option>
+                  <option value="druze">Druze</option>
                 </select>
               </F>
               <F label="When was the last date you received holiday payment?" hint="Leave empty if you never received it" err={E('holidaysDate')} style={{marginTop:12}}>
@@ -754,16 +754,16 @@ export default function App() {
 
             {/* Navigation */}
             {sendError&&<div className="err-banner" style={{marginTop:12}}>
-              <strong>ΓÜá∩╕Å Submission failed ΓÇö please try again</strong>
+              <strong>Submission failed - please try again</strong>
               {sendError}
             </div>}
             <div className="nav">
               <div style={{display:'flex',gap:8}}>
-                {page>1&&<button className="btn-o" onClick={()=>{setShowErrs(false);setSendError(null);setPage(p=>p-1);topRef.current?.scrollIntoView({behavior:'smooth'});}}>ΓåÉ Previous</button>}
-                <button className="btn-g" onClick={saveDraft}>≡ƒÆ╛ Save draft</button>
+                {page>1&&<button className="btn-o" onClick={()=>{setShowErrs(false);setSendError(null);setPage(p=>p-1);topRef.current?.scrollIntoView({behavior:'smooth'});}}>Previous</button>}
+                <button className="btn-g" onClick={saveDraft}>Save draft</button>
               </div>
               {page<4
-                ?<button className="btn-b" onClick={tryNext}>Next ΓåÆ</button>
+                ?<button className="btn-b" onClick={tryNext}>Next</button>
                 :<button
                     className="btn-b"
                     disabled={sending}
@@ -784,7 +784,7 @@ export default function App() {
                         setSending(false);
                       }
                     }}>
-                    {sending ? 'ΓÅ│ Sending...' : 'Send Form Γ£ô'}
+                    {sending ? 'Sending...' : 'Send Form'}
                   </button>
               }
             </div>
@@ -793,8 +793,8 @@ export default function App() {
 
         <div className="hk-ftr">
           <p>All calculation forms for foreign workers' rights in Israel created by the Foundation are exclusively owned and protected by copyright. It is prohibited to copy, duplicate or reproduce any content from the website or the forms provided.</p>
-          <p>All rights reserved by the Israeli Foundation for Foreign Worker Rights. ┬⌐</p>
-          <p>All forms for Social Benefits Calculation for foreign workers in Israel created by Hakeren are proprietary and copyrighted materials. Any unauthorized reproduction, copying, or duplication of content from this website or the forms provided is strictly prohibited. Hakeren reserves all rights. ┬⌐</p>
+          <p>All rights reserved by the Israeli Foundation for Foreign Worker Rights. (C)</p>
+          <p>All forms for Social Benefits Calculation for foreign workers in Israel created by Hakeren are proprietary and copyrighted materials. Any unauthorized reproduction, copying, or duplication of content from this website or the forms provided is strictly prohibited. Hakeren reserves all rights. (C)</p>
         </div>
       </div>
 
