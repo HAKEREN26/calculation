@@ -636,10 +636,6 @@ export default function App() {
               </div>)}
               <button className="add-btn" onClick={addSI}>+ Add salary increase</button>
 
-              <F label="SHABAT payment (NIS)" hint="Separate from your base salary" err={E('shabat')} style={{marginTop:14}}>
-                <input {...inp('shabat')} type="number" min="0" value={f.shabat} onChange={e=>set('shabat',e.target.value)} placeholder="NIS"/>
-              </F>
-
               <div className="field">
                 <label style={{fontWeight:700,color:'#1565c0'}}>Do you live at the workplace? <span className="req-star">*</span></label>
                 <Chips val={f.liveType} on={v=>set('liveType',v)} opts={[{v:'livein',l:'Live in'},{v:'liveout_clean',l:'Live out - Cleaning'},{v:'construction',l:'Construction'}]} hasErr={showErrs&&errs.liveType}/>
@@ -650,11 +646,16 @@ export default function App() {
                 <Chips val={f.worksWeekends} on={v=>set('worksWeekends',v)} opts={YN} hasErr={showErrs&&errs.worksWeekends}/>
                 <Err msg={E('worksWeekends')}/>
               </div>
-              {f.worksWeekends==='yes'&&<F label="How many weekends in a month?">
-                <select {...inp('weekendsPerMonth')} style={{maxWidth:200}} value={f.weekendsPerMonth} onChange={e=>set('weekendsPerMonth',e.target.value)}>
-                  {['1','2','3','4'].map(n=><option key={n} value={n}>{n}</option>)}
-                </select>
-              </F>}
+              {f.worksWeekends==='yes'&&<>
+                <F label="How many weekends in a month?">
+                  <select {...inp('weekendsPerMonth')} style={{maxWidth:200}} value={f.weekendsPerMonth} onChange={e=>set('weekendsPerMonth',e.target.value)}>
+                    {['1','2','3','4'].map(n=><option key={n} value={n}>{n}</option>)}
+                  </select>
+                </F>
+                <F label="How much do you receive per Shabbat day? (NIS)" hint="The amount your employer pays you for each Shabbat day worked — not the monthly total" err={E('shabat')} style={{marginTop:8}}>
+                  <input {...inp('shabat')} type="number" min="0" value={f.shabat} onChange={e=>set('shabat',e.target.value)} placeholder="Amount per single Shabbat"/>
+                </F>
+              </>}
 
               <p style={{fontSize:14,fontWeight:700,color:'#1565c0',margin:'16px 0 4px'}}>Vacations in Home Country</p>
               <p style={{fontSize:12,color:'#666',marginBottom:10}}>For each vacation period, indicate whether you received payment and provide the dates.</p>
