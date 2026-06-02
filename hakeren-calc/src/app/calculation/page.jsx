@@ -409,7 +409,7 @@ export default function App() {
   const termOpts = [{v:'died',l:'Employer Died'},{v:'fired',l:'Got Fired'},{v:'resign',l:'Resigned'}];
   const resignOpts = [{v:'nopay',l:"They didn't pay me"},{v:'sick',l:"I'm sick (medical)"},{v:'harassment',l:'Sexual harassment'},{v:'other',l:'Other reason'}];
   const contactOpts = [{v:'son',l:'Son'},{v:'daughter',l:'Daughter'},{v:'niece',l:'Niece/Nephew'},{v:'wife',l:'Wife'},{v:'husband',l:'Husband'},{v:'social',l:'Social Worker'}];
-  const holidayTypeOpts = [{v:'jewish',l:'Jewish'},{v:'christian',l:'Christian'},{v:'muslim',l:'Muslim'},{v:'druze',l:'Druze'}];
+  const holidayTypeOpts = [{v:'jewish',l:'Jewish'},{v:'christian_catholic',l:'Christian Catholic'},{v:'christian_orthodox',l:'Christian Orthodox'},{v:'thailand',l:'Thailand'},{v:'india',l:'India'},{v:'srilanka',l:'Sri Lanka'},{v:'romania',l:'Romania'},{v:'ukraine',l:'Ukraine'}];
   const inp = (k, extra) => ({
     style: {width:'100%',padding:'9px 11px',border:`1.5px solid ${showErrs&&errs[k]?'#e53935':'#ccc'}`,borderRadius:5,fontSize:13,fontFamily:'inherit',color:'#222',background:showErrs&&errs[k]?'#fff5f5':'#fafafa',outline:'none'},
     ...extra
@@ -691,10 +691,7 @@ export default function App() {
               <F label="Which holidays do you celebrate?" req err={E('holidayType')}>
                 <select {...inp('holidayType')} value={f.holidayType} onChange={e=>set('holidayType',e.target.value)}>
                   <option value="">Select your holidays</option>
-                  <option value="jewish">Jewish</option>
-                  <option value="christian">Christian</option>
-                  <option value="muslim">Muslim</option>
-                  <option value="druze">Druze</option>
+                  {holidayTypeOpts.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}
                 </select>
               </F>
               <F label="When was the last date you received holiday payment?" hint="Leave empty if you never received it" err={E('holidaysDate')} style={{marginTop:12}}>
