@@ -300,7 +300,24 @@ const css = `
   .hk-ftr p{margin-bottom:3px}
   .progress-bar{height:4px;background:#e0e8f5;margin-bottom:0}
   .progress-fill{height:100%;background:#1565c0;transition:width 0.3s}
-  @media(max-width:600px){.g2,.g3{grid-template-columns:1fr}.hk-hero h1{font-size:16px}}
+  @media(max-width:600px){
+    .g2,.g3{grid-template-columns:1fr}
+    .hk-hero h1{font-size:16px}
+    .hk-hdr{padding:10px 12px;flex-wrap:wrap;gap:8px}
+    .hk-hdr img{height:40px}
+    .pw{padding:0 10px 30px}
+    .fc-body{padding:14px 12px}
+    .fc-hdr{padding:8px 12px;font-size:12px;flex-wrap:wrap;gap:6px}
+    .nav{flex-wrap:wrap;justify-content:center}
+    .btn-b,.btn-o,.btn-g{width:100%;text-align:center}
+    .rb{padding:5px 10px;font-size:11px}
+    .rg{gap:5px}
+    .pay-notice{font-size:12px;padding:10px 12px}
+    .vac-blk{padding:10px}
+    .sal-blk{padding:10px}
+    body{overflow-x:hidden}
+    .field input[type="date"]{font-size:16px}
+  }
 `;
 
 function Chips({opts, val, on, hasErr}) {
@@ -313,6 +330,57 @@ function F({label, req, hint, span, err, children}) {
   return <div className="field" style={span?{gridColumn:'1/-1'}:{}} id={err?`err-${label?.replace(/\s/g,'_')}`:''}><label>{label}{req&&<span className="req-star"> *</span>}</label>{children}{hint&&<p className="hint">{hint}</p>}{err&&<p className="errmsg">{err}</p>}</div>;
 }
 function Err({msg}) { return msg?<p className="errmsg">{msg}</p>:null; }
+
+function DateInput({value, onChange, style, placeholder}) {
+  const ref = useRef(null);
+  const [textVal, setTextVal] = useState('');
+  const [mode, setMode] = useState('date');
+
+  // Sync from parent value (YYYY-MM-DD) to text display (DD/MM/YYYY)
+  useEffect(() => {
+    if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const [y,m,d] = value.split('-');
+      setTextVal(d+'/'+m+'/'+y);
+    } else if (!value) {
+      setTextVal('');
+    }
+  }, [value]);
+
+  const parseText = (txt) => {
+    // Accept DD/MM/YYYY, DD.MM.YYYY, DD-MM-YYYY
+    const m = txt.match(/^(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{4})$/);
+    if (m) return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
+    return null;
+  };
+
+  if (mode === 'text') {
+    return <div style={{display:'flex',gap:6,alignItems:'center'}}>
+      <input type="text" value={textVal} placeholder="DD/MM/YYYY"
+        style={{...style, flex:1}} inputMode="numeric"
+        onChange={e => {
+          let v = e.target.value;
+          // Auto-add slashes
+          const digits = v.replace(/\D/g,'');
+          if (digits.length <= 8) {
+            if (digits.length > 4) v = digits.slice(0,2)+'/'+digits.slice(2,4)+'/'+digits.slice(4);
+            else if (digits.length > 2) v = digits.slice(0,2)+'/'+digits.slice(2);
+            else v = digits;
+          }
+          setTextVal(v);
+          const parsed = parseText(v);
+          if (parsed) onChange({target:{value:parsed}});
+        }}
+        onBlur={() => { const p = parseText(textVal); if (p) onChange({target:{value:p}}); }}
+      />
+      <button type="button" onClick={()=>setMode('date')} style={{background:'none',border:'1px solid #90caf9',borderRadius:4,padding:'6px 8px',cursor:'pointer',fontSize:16,lineHeight:1}} title="Open calendar">&#128197;</button>
+    </div>;
+  }
+
+  return <div style={{display:'flex',gap:6,alignItems:'center'}}>
+    <input type="date" value={value} onChange={onChange} style={{...style, flex:1}} ref={ref}/>
+    <button type="button" onClick={()=>setMode('text')} style={{background:'none',border:'1px solid #90caf9',borderRadius:4,padding:'4px 8px',cursor:'pointer',fontSize:11,lineHeight:1.2,color:'#1565c0',fontFamily:'inherit',fontWeight:600}} title="Type date manually">DD/MM</button>
+  </div>;
+}
 
 export default function App() {
   const [page, setPage] = useState(1);
@@ -409,7 +477,7 @@ export default function App() {
   const termOpts = [{v:'died',l:'Employer Died'},{v:'fired',l:'Got Fired'},{v:'resign',l:'Resigned'}];
   const resignOpts = [{v:'nopay',l:"They didn't pay me"},{v:'sick',l:"I'm sick (medical)"},{v:'harassment',l:'Sexual harassment'},{v:'other',l:'Other reason'}];
   const contactOpts = [{v:'son',l:'Son'},{v:'daughter',l:'Daughter'},{v:'niece',l:'Niece/Nephew'},{v:'wife',l:'Wife'},{v:'husband',l:'Husband'},{v:'social',l:'Social Worker'}];
-  const holidayTypeOpts = [{v:'jewish',l:'Jewish'},{v:'christian',l:'Christian'},{v:'muslim',l:'Muslim'},{v:'druze',l:'Druze'}];
+  const holidayTypeOpts = [{v:'jewish',l:'Jewish'},{v:'christian_catholic',l:'Christian Catholic'},{v:'christian_orthodox',l:'Christian Orthodox'},{v:'thailand',l:'Thailand'},{v:'india',l:'India'},{v:'srilanka',l:'Sri Lanka'},{v:'romania',l:'Romania'},{v:'ukraine',l:'Ukraine'}];
   const inp = (k, extra) => ({
     style: {width:'100%',padding:'9px 11px',border:`1.5px solid ${showErrs&&errs[k]?'#e53935':'#ccc'}`,borderRadius:5,fontSize:13,fontFamily:'inherit',color:'#222',background:showErrs&&errs[k]?'#fff5f5':'#fafafa',outline:'none'},
     ...extra
@@ -583,10 +651,10 @@ export default function App() {
               <p className="st">Employment Information:</p>
               <div className="g2">
                 <F label="Employment Start Date" req err={E('start')}>
-                  <input {...inp('start')} type="date" value={f.start} onChange={e=>set('start',e.target.value)}/>
+                  <DateInput {...inp('start')} value={f.start} onChange={e=>set('start',e.target.value)}/>
                 </F>
                 <F label="Employment End Date" req err={E('end')}>
-                  <input {...inp('end')} type="date" value={f.end} onChange={e=>set('end',e.target.value)}/>
+                  <DateInput {...inp('end')} value={f.end} onChange={e=>set('end',e.target.value)}/>
                 </F>
               </div>
               <div className="field">
@@ -603,7 +671,7 @@ export default function App() {
                 <input {...inp('shiva')} type="number" min="0" max="7" value={f.shiva} onChange={e=>set('shiva',e.target.value)} placeholder="0-7"/>
               </F>}
               <F label="When did you provide or receive advance notice?" req err={E('noticeDate')}>
-                <input {...inp('noticeDate')} type="date" value={f.noticeDate} onChange={e=>set('noticeDate',e.target.value)}/>
+                <DateInput {...inp('noticeDate')} value={f.noticeDate} onChange={e=>set('noticeDate',e.target.value)}/>
               </F>
               <F label="How many advance notice days were given?" req hint="Enter 0 if no advance notice was given">
                 <input {...inp('noticeDaysGiven')} type="number" min="0" max="30" value={f.noticeDaysGiven} onChange={e=>set('noticeDaysGiven',e.target.value)} placeholder="0"/>
@@ -630,7 +698,7 @@ export default function App() {
                     <input {...inp(`si_${i}_sal`)} type="number" min="0" value={si.newSal} onChange={e=>updSI(i,'newSal',e.target.value)} placeholder="NIS"/>
                   </F>
                   <F label="Effective from date" err={E(`si_${i}_date`)}>
-                    <input {...inp(`si_${i}_date`)} type="date" value={si.date} onChange={e=>updSI(i,'date',e.target.value)}/>
+                    <DateInput {...inp(`si_${i}_date`)} value={si.date} onChange={e=>updSI(i,'date',e.target.value)}/>
                   </F>
                 </div>
               </div>)}
@@ -669,36 +737,33 @@ export default function App() {
                 </div>
                 {(v.paid==='yes'||v.paid==='no')&&<div className="g2" style={{marginTop:8}}>
                   <F label="Departure date" req err={E(`vac_${i}_dep`)}>
-                    <input {...inp(`vac_${i}_dep`)} type="date" value={v.dep} onChange={e=>updV(i,'dep',e.target.value)}/>
+                    <DateInput {...inp(`vac_${i}_dep`)} value={v.dep} onChange={e=>updV(i,'dep',e.target.value)}/>
                   </F>
                   <F label="Return date" req err={E(`vac_${i}_ret`)}>
-                    <input {...inp(`vac_${i}_ret`)} type="date" value={v.ret} onChange={e=>updV(i,'ret',e.target.value)}/>
+                    <DateInput {...inp(`vac_${i}_ret`)} value={v.ret} onChange={e=>updV(i,'ret',e.target.value)}/>
                   </F>
                 </div>}
               </div>)}
               <button className="add-btn" onClick={addV}>+ Add vacation</button>
 
               <F label="When was the last date you received Recuperation (Avra'a) payment?" hint="Leave empty if you never received it" err={E('recuperationDate')} style={{marginTop:14}}>
-                <input {...inp('recuperationDate')} type="date" value={f.recuperationDate} onChange={e=>set('recuperationDate',e.target.value)}/>
+                <DateInput {...inp('recuperationDate')} value={f.recuperationDate} onChange={e=>set('recuperationDate',e.target.value)}/>
               </F>
             </>}
 
             {/* ΓòÉΓòÉΓòÉ PAGE 4 ΓòÉΓòÉΓòÉ */}
             {page===4&&<>
               <F label="When was the last date you received annual leave (vacation) payment?" hint="Leave empty if you never received it" err={E('annualLeaveDate')}>
-                <input {...inp('annualLeaveDate')} type="date" value={f.annualLeaveDate} onChange={e=>set('annualLeaveDate',e.target.value)}/>
+                <DateInput {...inp('annualLeaveDate')} value={f.annualLeaveDate} onChange={e=>set('annualLeaveDate',e.target.value)}/>
               </F>
               <F label="Which holidays do you celebrate?" req err={E('holidayType')}>
                 <select {...inp('holidayType')} value={f.holidayType} onChange={e=>set('holidayType',e.target.value)}>
                   <option value="">Select your holidays</option>
-                  <option value="jewish">Jewish</option>
-                  <option value="christian">Christian</option>
-                  <option value="muslim">Muslim</option>
-                  <option value="druze">Druze</option>
+                  {holidayTypeOpts.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}
                 </select>
               </F>
               <F label="When was the last date you received holiday payment?" hint="Leave empty if you never received it" err={E('holidaysDate')} style={{marginTop:12}}>
-                <input {...inp('holidaysDate')} type="date" value={f.holidaysDate} onChange={e=>set('holidaysDate',e.target.value)}/>
+                <DateInput {...inp('holidaysDate')} value={f.holidaysDate} onChange={e=>set('holidaysDate',e.target.value)}/>
               </F>
               <F label="How many holiday days were you paid from the beginning of the civil year until today?" req err={E('holidayDaysWorked')} hint="Maximum 9 days per year">
                 <input {...inp('holidayDaysWorked')} type="number" min="0" max="9" value={f.holidayDaysWorked} onChange={e=>set('holidayDaysWorked',e.target.value)} placeholder="0-9"/>
@@ -746,7 +811,7 @@ export default function App() {
                 <p className="hint">Select "Yes" if the employer did not pay the last month's salary</p>
               </div>
               {f.lastSalaryNeeded==='yes'&&<F label="Last date salary was paid" hint="The last date you received salary payment" err={E('lastSalaryDate')}>
-                <input {...inp('lastSalaryDate')} type="date" value={f.lastSalaryDate} onChange={e=>set('lastSalaryDate',e.target.value)}/>
+                <DateInput {...inp('lastSalaryDate')} value={f.lastSalaryDate} onChange={e=>set('lastSalaryDate',e.target.value)}/>
               </F>}
               <F label="Additional comments or information:">
                 <textarea {...inp('comments')} style={{...inp('comments').style,minHeight:80,resize:'vertical'}} value={f.comments} onChange={e=>set('comments',e.target.value)}/>
