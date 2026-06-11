@@ -184,6 +184,7 @@ function validatePage(page, f) {
     else if (!isPhone(f.phone))     errs.phone = 'Enter a valid phone number';
     if (!f.email.trim())            errs.email = 'Email is required';
     else if (!isEmail(f.email))     errs.email = 'Enter a valid email address';
+    if (!f.passport.trim())          errs.passport = 'Passport number is required';
     if (!f.nationality)             errs.nationality = 'Nationality is required';
     if (!f.address.trim())          errs.address = 'Address is required';
     if (f.empSource.length === 0)   errs.empSource = 'Please select employer type';
@@ -504,7 +505,7 @@ export default function App() {
               <F label="Email" req hint="Results will be sent to this email" err={E('email')}>
                 <input {...inp('email')} type="email" value={f.email} onChange={e=>set('email',e.target.value)} onBlur={()=>touch('email')} placeholder="worker@example.com"/>
               </F>
-              <F label="Passport Number">
+              <F label="Passport Number" req err={E('passport')}>
                 <input {...inp('passport')} value={f.passport} onChange={e=>set('passport',e.target.value)} placeholder="Passport number"/>
               </F>
               <F label="Upload Your Passport Photo">
