@@ -5,7 +5,7 @@ const LOGO_B64 = "data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BS
 const DRAFT_KEY = "hakeren_draft_v2";
 
 const YN = [{v:'yes',l:'Yes'},{v:'no',l:'No'}];
-const YNW = [{v:'yes',l:'Yes'},{v:'no',l:'No'},{v:'less1year',l:"Working less than a year"}];
+
 
 const INITIAL = {
   name:'',phone:'',email:'',passport:'',nationality:'',
@@ -14,18 +14,18 @@ const INITIAL = {
   empFirstName:'',empFamilyName:'',empAddress:'',empCell:'',empHome:'',
   empContact:[],empContactName:'',empContactPhone:'',
   start:'',end:'',termReason:'',resignReason:[],noticeDate:'',
-  noticeDaysGiven:'0',shiva:'0',
+  noticeDaysGiven:'0',
   salary:'',salaryIncreases:[],
   shabat:'',pocketMoney:'',liveType:'',
   worksWeekends:'',weekendsPerMonth:'1',
-  vacations:[{paid:'',dep:'',ret:''}],
+  vacations:[{dep:'',ret:''}],
   recuperationDate:'',
   annualLeaveDate:'',
   holidaysDate:'',
   holidayType:'',holidayDaysWorked:'',
   existingPension:'',pensionPaid:'',severancePaid:'',
   lastSalaryNeeded:'',lastSalaryDate:'',
-  firstEmployment:'',ownerRent:'',agreement:'',
+  agreement:'',
   comments:'',
 };
 
@@ -56,14 +56,14 @@ async function submitToMake(f) {
     resignReason: Array.isArray(f.resignReason) ? f.resignReason[0] || '' : f.resignReason,
     noticeDate: f.noticeDate,
     noticeDaysGiven: Number(f.noticeDaysGiven) || 0,
-    shiva: f.termReason === 'died' ? Number(f.shiva) || 0 : 0,
+    shiva: 0,
     salary: Number(f.salary),
     salaryIncreases: f.salaryIncreases.filter(si => si.newSal && si.date).map(si => ({newSal: Number(si.newSal), date: si.date})),
     pocketMoney: Number(f.pocketMoney) || 0,
     liveType: f.liveType,
     worksWeekends: f.worksWeekends === 'yes',
     weekendsPerMonth: f.worksWeekends === 'yes' ? Number(f.weekendsPerMonth) : 0,
-    vacations: f.vacations.filter(v => v.paid === 'yes' || v.paid === 'no').map(v => ({paid: v.paid, dep: v.dep, ret: v.ret})),
+    vacations: f.vacations.filter(v => v.dep && v.ret).map(v => ({paid: 'no', dep: v.dep, ret: v.ret})),
     existingPension: f.existingPension === 'yes',
     pensionPaid: f.pensionPaid,
     severancePaid: f.severancePaid,
@@ -74,8 +74,8 @@ async function submitToMake(f) {
     annualLeaveLastDate: f.annualLeaveDate || null,
     lastSalaryNeeded: f.lastSalaryNeeded === 'yes',
     lastSalaryDate: f.lastSalaryDate || null,
-    firstEmployment: f.firstEmployment,
-    ownerRent: f.ownerRent,
+    firstEmployment: '',
+    ownerRent: '',
     agreement: f.agreement,
     comments: f.comments || '',
     shabat: f.shabat ? Number(f.shabat) : null,
@@ -117,7 +117,7 @@ async function submitToMake(f) {
       resignation_reason: f.resignReason,
       notice_date: f.noticeDate,
       notice_days_given: Number(f.noticeDaysGiven) || 0,
-      shiva_days: f.termReason === 'died' ? Number(f.shiva) || 0 : 0,
+      shiva_days: 0,
       employment_type: f.liveType,
       works_weekends: f.worksWeekends,
       weekends_per_month: f.worksWeekends === 'yes' ? f.weekendsPerMonth : null
@@ -133,9 +133,9 @@ async function submitToMake(f) {
           effective_from: si.date
         }))
     },
-    vacations: f.vacations.map((v, i) => ({
+    vacations: f.vacations.filter(v => v.dep && v.ret).map((v, i) => ({
       vacation_number: i + 1,
-      was_paid: v.paid,
+      was_paid: 'no',
       departure_date: v.dep || null,
       return_date: v.ret || null
     })),
@@ -152,8 +152,8 @@ async function submitToMake(f) {
       last_salary_date: f.lastSalaryDate || null
     },
     additional: {
-      first_employment_in_israel: f.firstEmployment,
-      employer_owns_or_rents: f.ownerRent,
+      first_employment_in_israel: '',
+      employer_owns_or_rents: '',
       signed_employment_agreement: f.agreement,
       comments: f.comments || null
     }
@@ -217,8 +217,7 @@ function validatePage(page, f) {
       if (si.date && !si.newSal)    errs[`si_${i}_sal`] = 'Salary required';
     });
     f.vacations.forEach((v, i) => {
-      if (!v.paid)                  errs[`vac_${i}_paid`] = 'Please select yes/no/not on vacation';
-      if (v.paid === 'yes' || v.paid === 'no') {
+      if (v.dep || v.ret) {
         if (!v.dep)                 errs[`vac_${i}_dep`] = 'Departure date required';
         if (!v.ret)                 errs[`vac_${i}_ret`] = 'Return date required';
         if (v.dep && v.ret && v.ret < v.dep) errs[`vac_${i}_ret`] = 'Return must be after departure';
@@ -236,8 +235,6 @@ function validatePage(page, f) {
     if (!f.severancePaid)           errs.severancePaid = 'Please answer this question';
     if (!f.lastSalaryNeeded)         errs.lastSalaryNeeded = 'Please answer this question';
     if (f.lastSalaryNeeded === 'yes' && !f.lastSalaryDate) errs.lastSalaryDate = 'Please enter the last salary date';
-    if (!f.firstEmployment)         errs.firstEmployment = 'Please answer this question';
-    if (!f.ownerRent)               errs.ownerRent = 'Please answer this question';
     if (!f.agreement)               errs.agreement = 'Please answer this question';
   }
 
@@ -401,7 +398,7 @@ export default function App() {
   const addSI = () => set('salaryIncreases', [...f.salaryIncreases, {newSal:'',date:''}]);
   const updSI = (i,k,v) => { const a=[...f.salaryIncreases]; a[i]={...a[i],[k]:v}; set('salaryIncreases',a); };
   const rmSI  = i => set('salaryIncreases', f.salaryIncreases.filter((_,x)=>x!==i));
-  const addV  = () => set('vacations', [...f.vacations, {paid:'',dep:'',ret:''}]);
+  const addV  = () => set('vacations', [...f.vacations, {dep:'',ret:''}]);
   const updV  = (i,k,v) => { const a=[...f.vacations]; a[i]={...a[i],[k]:v}; set('vacations',a); };
   const rmV   = i => set('vacations', f.vacations.filter((_,x)=>x!==i));
 
@@ -599,9 +596,6 @@ export default function App() {
                 <ChkGrp opts={resignOpts} vals={f.resignReason} on={v=>set('resignReason',v)}/>
                 <Err msg={E('resignReason')}/>
               </div>}
-              {f.termReason==='died'&&<F label="How many shiva (mourning) days did you stay?" hint="0 if you didn't stay for shiva">
-                <input {...inp('shiva')} type="number" min="0" max="7" value={f.shiva} onChange={e=>set('shiva',e.target.value)} placeholder="0-7"/>
-              </F>}
               <F label="When did you provide or receive advance notice?" req err={E('noticeDate')}>
                 <input {...inp('noticeDate')} type="date" value={f.noticeDate} onChange={e=>set('noticeDate',e.target.value)}/>
               </F>
@@ -636,6 +630,10 @@ export default function App() {
               </div>)}
               <button className="add-btn" onClick={addSI}>+ Add salary increase</button>
 
+              <F label="SHABAT payment (NIS)" hint="Separate from your base salary" err={E('shabat')} style={{marginTop:14}}>
+                <input {...inp('shabat')} type="number" min="0" value={f.shabat} onChange={e=>set('shabat',e.target.value)} placeholder="NIS"/>
+              </F>
+
               <div className="field">
                 <label style={{fontWeight:700,color:'#1565c0'}}>Do you live at the workplace? <span className="req-star">*</span></label>
                 <Chips val={f.liveType} on={v=>set('liveType',v)} opts={[{v:'livein',l:'Live in'},{v:'liveout_clean',l:'Live out - Cleaning'},{v:'construction',l:'Construction'}]} hasErr={showErrs&&errs.liveType}/>
@@ -658,29 +656,27 @@ export default function App() {
               </>}
 
               <p style={{fontSize:14,fontWeight:700,color:'#1565c0',margin:'16px 0 4px'}}>Vacations in Home Country</p>
-              <p style={{fontSize:12,color:'#666',marginBottom:10}}>For each vacation period, indicate whether you received payment and provide the dates.</p>
+              <p style={{fontSize:12,color:'#666',marginBottom:10}}>If you went on vacation to your home country, enter the dates for each trip.</p>
               {f.vacations.map((v,i)=><div key={i} className="vac-blk">
                 {f.vacations.length>1&&<button className="rm" onClick={()=>rmV(i)}>X</button>}
                 <p style={{fontSize:13,fontWeight:700,color:'#1565c0',marginBottom:10}}>Vacation {i+1}</p>
-                <div className="field">
-                  <label>Did you get paid for this vacation? <span className="req-star">*</span></label>
-                  <Chips val={v.paid} on={val=>updV(i,'paid',val)} opts={[{v:'yes',l:'Yes - paid'},{v:'no',l:'No - not paid'},{v:'notvac',l:"I wasn't on vacation"}]} hasErr={showErrs&&errs[`vac_${i}_paid`]}/>
-                  <Err msg={E(`vac_${i}_paid`)}/>
-                </div>
-                {(v.paid==='yes'||v.paid==='no')&&<div className="g2" style={{marginTop:8}}>
-                  <F label="Departure date" req err={E(`vac_${i}_dep`)}>
+                <div className="g2">
+                  <F label="Departure date" err={E(`vac_${i}_dep`)}>
                     <input {...inp(`vac_${i}_dep`)} type="date" value={v.dep} onChange={e=>updV(i,'dep',e.target.value)}/>
                   </F>
-                  <F label="Return date" req err={E(`vac_${i}_ret`)}>
+                  <F label="Return date" err={E(`vac_${i}_ret`)}>
                     <input {...inp(`vac_${i}_ret`)} type="date" value={v.ret} onChange={e=>updV(i,'ret',e.target.value)}/>
                   </F>
-                </div>}
+                </div>
               </div>)}
               <button className="add-btn" onClick={addV}>+ Add vacation</button>
 
-              <F label="When was the last date you received Recuperation (Avra'a) payment?" hint="Leave empty if you never received it" err={E('recuperationDate')} style={{marginTop:14}}>
-                <input {...inp('recuperationDate')} type="date" value={f.recuperationDate} onChange={e=>set('recuperationDate',e.target.value)}/>
-              </F>
+              {(()=>{
+                const lessThan1Year = f.start && f.end && ((new Date(f.end) - new Date(f.start)) / (1000*60*60*24)) < 365;
+                return <F label="When was the last date you received Recuperation (Avra'a) payment?" hint={lessThan1Year ? "Not applicable — less than 1 year of employment" : "Leave empty if you never received it"} err={E('recuperationDate')} style={{marginTop:14}}>
+                  <input {...inp('recuperationDate')} type="date" value={lessThan1Year ? '' : f.recuperationDate} onChange={e=>set('recuperationDate',e.target.value)} disabled={lessThan1Year} style={lessThan1Year ? {opacity:0.5,cursor:'not-allowed'} : {}}/>
+                </F>;
+              })()}
             </>}
 
             {/* ΓòÉΓòÉΓòÉ PAGE 4 ΓòÉΓòÉΓòÉ */}
@@ -717,16 +713,6 @@ export default function App() {
                   <Chips val={f.severancePaid} on={v=>set('severancePaid',v)} opts={YN} hasErr={showErrs&&errs.severancePaid}/>
                   <Err msg={E('severancePaid')}/>
                 </div>
-              </div>
-              <div className="field">
-                <label style={{fontWeight:700,color:'#1565c0'}}>Is this your first employment in Israel? <span className="req-star">*</span></label>
-                <Chips val={f.firstEmployment} on={v=>set('firstEmployment',v)} opts={YN} hasErr={showErrs&&errs.firstEmployment}/>
-                <Err msg={E('firstEmployment')}/>
-              </div>
-              <div className="field">
-                <label style={{fontWeight:700,color:'#1565c0'}}>Does your Employer own or rent? <span className="req-star">*</span></label>
-                <Chips val={f.ownerRent} on={v=>set('ownerRent',v)} opts={[{v:'owns',l:'Owns'},{v:'rent',l:'Rent'},{v:'dontknow',l:"Don't know"}]} hasErr={showErrs&&errs.ownerRent}/>
-                <Err msg={E('ownerRent')}/>
               </div>
               <div className="field">
                 <label style={{fontWeight:700,color:'#1565c0'}}>Did you sign an employment agreement? <span className="req-star">*</span></label>
