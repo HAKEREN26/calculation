@@ -64,7 +64,11 @@ async function submitToMake(f) {
     liveType: f.liveType,
     worksWeekends: f.worksWeekends === 'yes',
     weekendsPerMonth: f.worksWeekends === 'yes' ? Number(f.weekendsPerMonth) : 0,
-    vacations: f.vacations.filter(v => v.dep && v.ret).map(v => ({paid: 'no', dep: v.dep, ret: v.ret})),
+    vacations_count: f.vacations.filter(v => v.dep && v.ret).length,
+    ...Object.fromEntries(f.vacations.filter(v => v.dep && v.ret).flatMap((v, i) => [
+      [`vacation_${i+1}_departure`, v.dep],
+      [`vacation_${i+1}_return`, v.ret]
+    ])),
     existingPension: f.existingPension === 'yes',
     pensionPaid: f.pensionPaid,
     severancePaid: f.severancePaid,
@@ -136,12 +140,11 @@ async function submitToMake(f) {
           effective_from: si.date
         }))
     },
-    vacations: f.vacations.filter(v => v.dep && v.ret).map((v, i) => ({
-      vacation_number: i + 1,
-      was_paid: 'no',
-      departure_date: v.dep || null,
-      return_date: v.ret || null
-    })),
+    vacations_count: f.vacations.filter(v => v.dep && v.ret).length,
+    ...Object.fromEntries(f.vacations.filter(v => v.dep && v.ret).flatMap((v, i) => [
+      [`vacation_${i+1}_departure`, v.dep],
+      [`vacation_${i+1}_return`, v.ret]
+    ])),
     benefits: {
       recuperation_last_date: f.recuperationDate || null,
       annual_leave_last_date: f.annualLeaveDate || null,
