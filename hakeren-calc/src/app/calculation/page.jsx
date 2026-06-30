@@ -187,8 +187,7 @@ function validatePage(page, f) {
     if (!f.name.trim())             errs.name = 'Full name is required';
     if (!f.phone.trim())            errs.phone = 'Phone is required';
     else if (!isPhone(f.phone))     errs.phone = 'Enter a valid phone number';
-    if (!f.email.trim())            errs.email = 'Email is required';
-    else if (!isEmail(f.email))     errs.email = 'Enter a valid email address';
+    if (f.email.trim() && !isEmail(f.email)) errs.email = 'Enter a valid email address';
     if (!f.passport.trim())          errs.passport = 'Passport number is required';
     if (!f.nationality)             errs.nationality = 'Nationality is required';
     if (!f.address.trim())          errs.address = 'Address is required';
@@ -507,7 +506,7 @@ export default function App() {
               <F label="Mobile Phone" req err={E('phone')}>
                 <input {...inp('phone')} type="tel" value={f.phone} onChange={e=>set('phone',e.target.value)} onBlur={()=>touch('phone')} placeholder="+972 / 05X-XXXXXXX"/>
               </F>
-              <F label="Email" req hint="Results will be sent to this email" err={E('email')}>
+              <F label="Email" hint="Results will be sent to this email (optional)" err={E('email')}>                
                 <input {...inp('email')} type="email" value={f.email} onChange={e=>set('email',e.target.value)} onBlur={()=>touch('email')} placeholder="worker@example.com"/>
               </F>
               <F label="Passport Number" req err={E('passport')}>
