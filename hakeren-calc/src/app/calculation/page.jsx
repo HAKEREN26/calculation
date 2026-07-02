@@ -490,7 +490,7 @@ export default function App() {
 
         <div className="pay-notice">
           <strong>Important - Payment Notice</strong>
-          <span>Results will be provided <span style={{color:'#e65100',fontWeight:700}}>only to those who have paid by credit card (Upay)</span>. If you wish to pay by <span style={{color:'#e65100',fontWeight:700,textDecoration:'underline'}}>cash or bank transfer</span>, please contact the Hakeren office directly before submitting this form.</span>
+          <span>Results will be provided <span style={{color:'#e65100',fontWeight:700}}>only to those who have paid by credit card (Upay)</span>. If you wish to pay by <span style={{color:'#e65100',fontWeight:700,textDecoration:'underline'}}>cash or bank transfer</span>, please pay by bank transfer and upload the payment confirmation at the following link: <a href="https://uploadpayment.vercel.app/" target="_blank" rel="noopener noreferrer" style={{color:'#1565c0',fontWeight:700}}>https://uploadpayment.vercel.app/</a></span>
           <span style={{display:'block',marginTop:8,fontWeight:600}}>Phone: 050-5750054 | Phone: 072-2243333</span>
         </div>
 
