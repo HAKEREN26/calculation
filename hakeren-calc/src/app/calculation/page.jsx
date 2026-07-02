@@ -22,7 +22,7 @@ const INITIAL = {
   recuperationDate:'',
   annualLeaveDate:'',
   holidaysDate:'',
-  holidayType:'',holidayDaysWorked:'',
+  holidayType:'jewish',holidayDaysWorked:'',
   existingPension:'',pensionPaid:'',severancePaid:'',
   lastSalaryNeeded:'',lastSalaryDate:'',
   agreement:'',
@@ -176,7 +176,9 @@ async function submitToMake(f) {
 
 // ΓöÇΓöÇ Validators ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
-const isPhone = v => /^[\d\s\-\+\(\)]{7,15}$/.test(v.trim());
+const isPhone = v => { const d = v.replace(/\D/g,''); return /^[\d\s\-\+\(\)]*$/.test(v.trim()) && d.length >= 7 && d.length <= 15; };
+const PHONE_MAX_LEN = 20;
+const EMAIL_MAX_LEN = 254;
 const isPosNum = v => v !== '' && !isNaN(v) && Number(v) >= 0;
 const isDate  = v => v && !isNaN(Date.parse(v));
 
@@ -186,8 +188,10 @@ function validatePage(page, f) {
   if (page === 1) {
     if (!f.name.trim())             errs.name = 'Full name is required';
     if (!f.phone.trim())            errs.phone = 'Phone is required';
+    else if (f.phone.trim().length > PHONE_MAX_LEN) errs.phone = `Phone number is too long (max ${PHONE_MAX_LEN} characters)`;
     else if (!isPhone(f.phone))     errs.phone = 'Enter a valid phone number';
-    if (f.email.trim() && !isEmail(f.email)) errs.email = 'Enter a valid email address';
+    if (f.email.trim() && f.email.trim().length > EMAIL_MAX_LEN) errs.email = `Email address is too long (max ${EMAIL_MAX_LEN} characters)`;
+    else if (f.email.trim() && !isEmail(f.email)) errs.email = 'Enter a valid email address';
     if (!f.passport.trim())          errs.passport = 'Passport number is required';
     if (!f.nationality)             errs.nationality = 'Nationality is required';
     if (!f.address.trim())          errs.address = 'Address is required';
@@ -204,7 +208,9 @@ function validatePage(page, f) {
 
   if (page === 3) {
     if (!f.start)                   errs.start = 'Start date is required';
+    else if (f.start) { var sy = new Date(f.start).getFullYear(); if (sy < 1950 || sy > 2100) errs.start = 'Year must be between 1950-2100'; }
     if (!f.end)                     errs.end = 'End date is required';
+    else if (f.end) { var ey = new Date(f.end).getFullYear(); if (ey < 1950 || ey > 2100) errs.end = 'Year must be between 1950-2100'; }
     if (f.start && f.end && f.end < f.start) errs.end = 'End date must be after start date';
     if (!f.termReason)              errs.termReason = 'Select a reason';
     if (f.termReason === 'resign' && f.resignReason.length === 0)
@@ -326,12 +332,19 @@ export default function App() {
   const [touched, setTouched] = useState({});
   const topRef = useRef(null);
 
-  const [f, setF] = useState(() => {
-    try { const d = localStorage.getItem(DRAFT_KEY); if(d){const p=JSON.parse(d);return p.data||INITIAL;} } catch(e) {}
-    return INITIAL;
-  });
+  const [f, setF] = useState(INITIAL);
   const set = (k, v) => setF(p => ({...p, [k]: v}));
   const touch = k => setTouched(p => ({...p, [k]: true}));
+
+  // Load any saved draft after mount only — reading localStorage during the
+  // initial render would make the client's first render differ from the
+  // server-rendered HTML and trigger a hydration mismatch.
+  useEffect(() => {
+    try {
+      const d = localStorage.getItem(DRAFT_KEY);
+      if (d) { const p = JSON.parse(d); if (p.data) setF(p.data); }
+    } catch(e) {}
+  }, []);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -355,16 +368,20 @@ export default function App() {
     {code:'th',label:'Thai'},
     {code:'id',label:'Indonesian'},
     {code:'vi',label:'Vietnamese'},
-    {code:'he',label:'Hebrew'},
+    {code:'iw',label:'Hebrew'},
   ];
+  const [curLang, setCurLang] = useState('');
+  useEffect(() => {
+    const m = document.cookie.match(/googtrans=\/en\/([a-zA-Z-]+)/);
+    if (m) setCurLang(m[1]);
+  }, []);
   useEffect(() => {
     if (window.googleTranslateElementInit) return;
-    document.cookie = 'googtrans=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT';
     document.documentElement.lang = 'en';
     window.googleTranslateElementInit = function() {
       new window.google.translate.TranslateElement({
         pageLanguage: 'en',
-        includedLanguages: 'tl,ro,uk,ru,zh-CN,si,hi,ar,fil,th,id,vi,he',
+        includedLanguages: 'tl,ro,uk,ru,zh-CN,si,hi,ar,fil,th,id,vi,iw',
         layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
         autoDisplay: false
       }, 'google_translate_element');
@@ -399,7 +416,7 @@ export default function App() {
   };
 
   // helpers
-  const E = k => showErrs && errs[k] ? errs[k] : null;
+  const E = k => (showErrs || touched[k]) && errs[k] ? errs[k] : null;
   const addSI = () => set('salaryIncreases', [...f.salaryIncreases, {newSal:'',date:''}]);
   const updSI = (i,k,v) => { const a=[...f.salaryIncreases]; a[i]={...a[i],[k]:v}; set('salaryIncreases',a); };
   const rmSI  = i => set('salaryIncreases', f.salaryIncreases.filter((_,x)=>x!==i));
@@ -412,22 +429,25 @@ export default function App() {
   const resignOpts = [{v:'nopay',l:"They didn't pay me"},{v:'sick',l:"I'm sick (medical)"},{v:'harassment',l:'Sexual harassment'},{v:'other',l:'Other reason'}];
   const contactOpts = [{v:'son',l:'Son'},{v:'daughter',l:'Daughter'},{v:'niece',l:'Niece/Nephew'},{v:'wife',l:'Wife'},{v:'husband',l:'Husband'},{v:'social',l:'Social Worker'}];
   const holidayTypeOpts = [{v:'jewish',l:'Jewish'},{v:'christian_catholic',l:'Christian Catholic'},{v:'christian_orthodox',l:'Christian Orthodox'},{v:'thailand',l:'Thailand'},{v:'india',l:'India'},{v:'srilanka',l:'Sri Lanka'},{v:'romania',l:'Romania'},{v:'ukraine',l:'Ukraine'}];
-  const inp = (k, extra) => ({
-    style: {width:'100%',padding:'9px 11px',border:`1.5px solid ${showErrs&&errs[k]?'#e53935':'#ccc'}`,borderRadius:5,fontSize:13,fontFamily:'inherit',color:'#222',background:showErrs&&errs[k]?'#fff5f5':'#fafafa',outline:'none'},
-    ...extra
-  });
+  const inp = (k, extra) => {
+    const bad = (showErrs || touched[k]) && errs[k];
+    return {
+      style: {width:'100%',padding:'9px 11px',border:`1.5px solid ${bad?'#e53935':'#ccc'}`,borderRadius:5,fontSize:13,fontFamily:'inherit',color:'#222',background:bad?'#fff5f5':'#fafafa',outline:'none'},
+      ...extra
+    };
+  };
 
   const pageTitle = ['Employee Information','Employer\'s Information','Employment Information','Final Details'][page-1];
   const pct = (page/4)*100;
 
   if (submitted) return (
     <>
-      <style>{css}</style>
+      <style dangerouslySetInnerHTML={{__html: css}} />
       <div className="hk-hdr"><img src={LOGO_B64} alt="Hakeren"/></div>
       <div className="pw" style={{textAlign:'center',paddingTop:60}}>
         <div style={{fontSize:56,marginBottom:20,color:'#4caf50'}}>V</div>
         <h2 style={{fontSize:22,color:'#1565c0',marginBottom:12}}>Form Submitted Successfully</h2>
-        <p style={{fontSize:14,color:'#444',lineHeight:1.7}}>Your calculation is being processed.<br/>Results will be sent to: <strong>{f.email}</strong></p>
+        <p style={{fontSize:14,color:'#444',lineHeight:1.7}}>Your calculation is being processed.<br/>Our team will contact you shortly.</p>
       </div>
       <div className="hk-ftr">
         <p>All calculation forms for foreign workers' rights in Israel created by the Foundation are exclusively owned and protected by copyright.</p>
@@ -439,24 +459,20 @@ export default function App() {
 
   return (
     <>
-      <style>{css}</style>
+      <style dangerouslySetInnerHTML={{__html: css}} />
       <div className="hk-hdr" ref={topRef}>
         <img src={LOGO_B64} alt="Hakeren"/>
         <div style={{display:'flex',alignItems:'center',gap:12}}>
           <div id="google_translate_element" className="notranslate" translate="no" style={{position:'absolute',left:'-9999px'}}/>
-          <select className="notranslate" translate="no" style={{fontSize:12,padding:'4px 8px',borderRadius:6,border:'1px solid #90caf9',color:'#1565c0',fontWeight:600,cursor:'pointer'}} onChange={e=>{
+          <select className="notranslate" translate="no" value={curLang} style={{fontSize:12,padding:'4px 8px',borderRadius:6,border:'1px solid #90caf9',color:'#1565c0',fontWeight:600,cursor:'pointer'}} onChange={e=>{
             const code = e.target.value;
-            if (!code) {
-              document.cookie='googtrans=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT';
-              document.cookie='googtrans=;path=/;domain='+window.location.hostname+';expires=Thu, 01 Jan 1970 00:00:00 GMT';
-              window.location.reload();
-              return;
+            document.cookie='googtrans=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            document.cookie='googtrans=;path=/;domain='+window.location.hostname+';expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            if (code) {
+              document.cookie='googtrans=/en/'+code+';path=/';
+              document.cookie='googtrans=/en/'+code+';path=/;domain='+window.location.hostname;
             }
-            document.cookie='googtrans=/en/'+code+';path=/';
-            document.cookie='googtrans=/en/'+code+';path=/;domain='+window.location.hostname;
-            const sel=document.querySelector('#google_translate_element select');
-            if(sel){sel.value=code;sel.dispatchEvent(new Event('change'));}
-            else window.location.reload();
+            window.location.reload();
           }}>
             {langMap.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}
           </select>
@@ -467,14 +483,14 @@ export default function App() {
 
       <div className="pw">
         <div className="hk-hero">
-          <h1>Computation Form | Calculation Form | Calculation Form</h1>
+          <h1>טופס חישוב | Calculation Form | Форма расчёта</h1>
           <p>Welcome to the Hakeren Social Benefits Calculation Page. HAKEREN is the prominent Israeli company servicing Foreign Workers in Israel, specializing in precise Social Benefits calculations. Alongside HAKEREN, our team of skilled professionals is dedicated to delivering accurate wage calculations in strict compliance by the law for employers and employing. To obtain a precise salary calculation, kindly complete the form below.</p>
           <p className="b">Hakeren the sole company that meticulously verifies your entitlements to ensure accurate salary assessments. Our commitment extends to confirming whether you have received the precise salary that aligns with your deserving job.</p>
         </div>
 
         <div className="pay-notice">
           <strong>Important - Payment Notice</strong>
-          <span>Results will be sent by email <span style={{color:'#e65100',fontWeight:700}}>only to those who have paid by credit card (Upay)</span>. If you wish to pay by <span style={{color:'#e65100',fontWeight:700,textDecoration:'underline'}}>cash or bank transfer</span>, please contact the Hakeren office directly before submitting this form.</span>
+          <span>Results will be provided <span style={{color:'#e65100',fontWeight:700}}>only to those who have paid by credit card (Upay)</span>. If you wish to pay by <span style={{color:'#e65100',fontWeight:700,textDecoration:'underline'}}>cash or bank transfer</span>, please contact the Hakeren office directly before submitting this form.</span>
           <span style={{display:'block',marginTop:8,fontWeight:600}}>Phone: 050-5750054 | Phone: 072-2243333</span>
         </div>
 
@@ -504,10 +520,10 @@ export default function App() {
                 <input {...inp('name')} value={f.name} onChange={e=>set('name',e.target.value)} onBlur={()=>touch('name')} placeholder="Full name"/>
               </F>
               <F label="Mobile Phone" req err={E('phone')}>
-                <input {...inp('phone')} type="tel" value={f.phone} onChange={e=>set('phone',e.target.value)} onBlur={()=>touch('phone')} placeholder="+972 / 05X-XXXXXXX"/>
+                <input {...inp('phone')} type="tel" maxLength={PHONE_MAX_LEN} value={f.phone} onChange={e=>set('phone',e.target.value)} onBlur={()=>touch('phone')} placeholder="+972 / 05X-XXXXXXX"/>
               </F>
-              <F label="Email" hint="Results will be sent to this email (optional)" err={E('email')}>                
-                <input {...inp('email')} type="email" value={f.email} onChange={e=>set('email',e.target.value)} onBlur={()=>touch('email')} placeholder="worker@example.com"/>
+              <F label="Email" err={E('email')}>
+                <input {...inp('email')} type="email" maxLength={EMAIL_MAX_LEN} value={f.email} onChange={e=>set('email',e.target.value)} onBlur={()=>touch('email')} placeholder="worker@example.com"/>
               </F>
               <F label="Passport Number" req err={E('passport')}>
                 <input {...inp('passport')} value={f.passport} onChange={e=>set('passport',e.target.value)} placeholder="Passport number"/>
@@ -526,7 +542,7 @@ export default function App() {
               <F label="Choose Your Nationality" req err={E('nationality')}>
                 <select {...inp('nationality')} value={f.nationality} onChange={e=>set('nationality',e.target.value)}>
                   <option value="">Choose Your Nationality</option>
-                  {nats.map(n=><option key={n}>{n}</option>)}
+                  {nats.map(n=><option key={n} value={n}>{n}</option>)}
                 </select>
               </F>
               <div className="field">
@@ -585,10 +601,10 @@ export default function App() {
               <p className="st">Employment Information:</p>
               <div className="g2">
                 <F label="Employment Start Date" req err={E('start')}>
-                  <input {...inp('start')} type="date" value={f.start} onChange={e=>set('start',e.target.value)}/>
+                  <input {...inp('start')} type="date" min="1950-01-01" max="2100-12-31" value={f.start} onChange={e=>set('start',e.target.value)}/>
                 </F>
                 <F label="Employment End Date" req err={E('end')}>
-                  <input {...inp('end')} type="date" value={f.end} onChange={e=>set('end',e.target.value)}/>
+                  <input {...inp('end')} type="date" min="1950-01-01" max="2100-12-31" value={f.end} onChange={e=>set('end',e.target.value)}/>
                 </F>
               </div>
               <div className="field">
@@ -622,6 +638,9 @@ export default function App() {
               </div>
 
               <p style={{fontSize:14,fontWeight:700,color:'#1565c0',margin:'14px 0 8px'}}>Salary Updates</p>
+              <p style={{fontSize:12,color:'#555',marginBottom:10,lineHeight:1.5,background:'#f5f5f5',padding:'8px 12px',borderRadius:8,border:'1px solid #e0e0e0'}}>
+                Please list <strong>every salary update</strong> you received throughout your employment. For each update, enter the <strong>updated salary (excluding pocket money)</strong> and the <strong>date from which it became valid</strong>.
+              </p>
               {f.salaryIncreases.map((si,i)=><div key={i} className="sal-blk">
                 <button className="rm" onClick={()=>rmSI(i)}>X</button>
                 <div className="g2">
