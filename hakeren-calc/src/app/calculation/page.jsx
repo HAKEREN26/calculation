@@ -181,30 +181,39 @@ const PHONE_MAX_LEN = 20;
 const EMAIL_MAX_LEN = 254;
 const isPosNum = v => v !== '' && !isNaN(v) && Number(v) >= 0;
 const isDate  = v => v && !isNaN(Date.parse(v));
-// Strips any character that isn't Hebrew, English, a digit, whitespace, or common name/address punctuation.
-const heEnOnly = v => v.replace(/[^a-zA-Z0-9֐-׿\s.,'"\-\/#&():]/g, '');
+// Allows only Hebrew, English, digits, whitespace, and common name/address punctuation.
+const isHeEnText = v => /^[a-zA-Z0-9֐-׿\s.,'"\-\/#&():]*$/.test(v);
+// Passport numbers: English letters and/or digits only (no Hebrew).
+const isEnDigitsText = v => /^[a-zA-Z0-9]*$/.test(v);
 
 function validatePage(page, f) {
   const errs = {};
 
   if (page === 1) {
     if (!f.name.trim())             errs.name = 'Full name is required';
+    else if (!isHeEnText(f.name))   errs.name = 'Hebrew or English letters only';
     if (!f.phone.trim())            errs.phone = 'Phone is required';
     else if (f.phone.trim().length > PHONE_MAX_LEN) errs.phone = `Phone number is too long (max ${PHONE_MAX_LEN} characters)`;
     else if (!isPhone(f.phone))     errs.phone = 'Enter a valid phone number';
     if (f.email.trim() && f.email.trim().length > EMAIL_MAX_LEN) errs.email = `Email address is too long (max ${EMAIL_MAX_LEN} characters)`;
     else if (f.email.trim() && !isEmail(f.email)) errs.email = 'Enter a valid email address';
     if (!f.passport.trim())          errs.passport = 'Passport number is required';
+    else if (!isEnDigitsText(f.passport)) errs.passport = 'English letters and/or numbers only';
     if (!f.nationality)             errs.nationality = 'Nationality is required';
     if (!f.address.trim())          errs.address = 'Address is required';
+    else if (!isHeEnText(f.address)) errs.address = 'Hebrew or English letters only';
     if (f.empSource.length === 0)   errs.empSource = 'Please select employer type';
     if (!f.pikadon)                 errs.pikadon = 'Please answer the PIKADON question';
   }
 
   if (page === 2) {
     if (!f.empFirstName.trim())     errs.empFirstName = 'First name is required';
+    else if (!isHeEnText(f.empFirstName)) errs.empFirstName = 'Hebrew or English letters only';
     if (!f.empFamilyName.trim())    errs.empFamilyName = 'Family name is required';
+    else if (!isHeEnText(f.empFamilyName)) errs.empFamilyName = 'Hebrew or English letters only';
     if (!f.empAddress.trim())       errs.empAddress = 'Employer address is required';
+    else if (!isHeEnText(f.empAddress)) errs.empAddress = 'Hebrew or English letters only';
+    if (f.empContactName.trim() && !isHeEnText(f.empContactName)) errs.empContactName = 'Hebrew or English letters only';
     if (f.empContactName.trim() && !f.empContactPhone.trim()) errs.empContactPhone = 'Phone required when name is given';
   }
 
@@ -249,6 +258,7 @@ function validatePage(page, f) {
     if (!f.lastSalaryNeeded)         errs.lastSalaryNeeded = 'Please answer this question';
     if (f.lastSalaryNeeded === 'yes' && !f.lastSalaryDate) errs.lastSalaryDate = 'Please enter the last salary date';
     if (!f.agreement)               errs.agreement = 'Please answer this question';
+    if (f.comments.trim() && !isHeEnText(f.comments)) errs.comments = 'Hebrew or English letters only';
   }
 
   return errs;
@@ -359,6 +369,45 @@ export default function App() {
     return () => clearInterval(id);
   }, [f]);
 
+  // Google Translate covers everything except Hebrew (permanently translated in-page above)
+  // and English (the source language).
+  const langMap = [
+    {code:'',label:'English (Original)'},
+    {code:'tl',label:'Tagalog'},
+    {code:'ro',label:'Romanian'},
+    {code:'uk',label:'Ukrainian'},
+    {code:'ru',label:'Russian'},
+    {code:'zh-CN',label:'Chinese'},
+    {code:'si',label:'Sinhala'},
+    {code:'hi',label:'Hindi'},
+    {code:'ar',label:'Arabic'},
+    {code:'fil',label:'Filipino'},
+    {code:'th',label:'Thai'},
+    {code:'id',label:'Indonesian'},
+    {code:'vi',label:'Vietnamese'},
+  ];
+  const [curLang, setCurLang] = useState('');
+  useEffect(() => {
+    const m = document.cookie.match(/googtrans=\/en\/([a-zA-Z-]+)/);
+    if (m) setCurLang(m[1]);
+  }, []);
+  useEffect(() => {
+    if (window.googleTranslateElementInit) return;
+    document.documentElement.lang = 'en';
+    window.googleTranslateElementInit = function() {
+      new window.google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'tl,ro,uk,ru,zh-CN,si,hi,ar,fil,th,id,vi',
+        layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    };
+    const s = document.createElement('script');
+    s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit&hl=en';
+    s.async = true;
+    document.head.appendChild(s);
+  }, []);
+
   const saveDraft = () => {
     localStorage.setItem(DRAFT_KEY, JSON.stringify({data:f, savedAt:new Date().toISOString()}));
     setSavedAt(new Date().toLocaleTimeString());
@@ -392,7 +441,7 @@ export default function App() {
   const rmV   = i => set('vacations', f.vacations.filter((_,x)=>x!==i));
 
   const nats = ['Filipino','Romanian','Moldovan','Ukrainian','Russian','Sri Lankan','Chinese','Indian','Thai','Other'];
-  const termOpts = [{v:'died',l:'Employer Died',he:'המעסיק נפטר'},{v:'fired',l:'Got Fired',he:'פוטרתי'},{v:'resign',l:'Resigned',he:'התפטרתי'}];
+  const termOpts = [{v:'died',l:'Employer Died',he:'המעסיק נפטר'},{v:'fired',l:'Got Fired',he:'פוטר'},{v:'resign',l:'Resigned',he:'התפטר'}];
   const resignOpts = [{v:'nopay',l:"They didn't pay me",he:'לא שילמו לי'},{v:'sick',l:"I'm sick (medical)",he:'אני חולה (רפואי)'},{v:'harassment',l:'Sexual harassment',he:'הטרדה מינית'},{v:'other',l:'Other reason',he:'סיבה אחרת'}];
   const contactOpts = [{v:'son',l:'Son',he:'בן'},{v:'daughter',l:'Daughter',he:'בת'},{v:'niece',l:'Niece/Nephew',he:'אחיין/ית'},{v:'wife',l:'Wife',he:'אישה'},{v:'husband',l:'Husband',he:'בעל'},{v:'social',l:'Social Worker',he:'עובד/ת סוציאלי/ת'}];
   const holidayTypeOpts = [{v:'jewish',l:'Jewish',he:'יהודי'},{v:'christian_catholic',l:'Christian Catholic',he:'נוצרי קתולי'},{v:'christian_orthodox',l:'Christian Orthodox',he:'נוצרי אורתודוקסי'},{v:'thailand',l:'Thailand',he:'תאילנד'},{v:'india',l:'India',he:'הודו'},{v:'srilanka',l:'Sri Lanka',he:'סרי לנקה'},{v:'romania',l:'Romania',he:'רומניה'},{v:'ukraine',l:'Ukraine',he:'אוקראינה'}];
@@ -415,7 +464,7 @@ export default function App() {
       <div className="pw" style={{textAlign:'center',paddingTop:60}}>
         <div style={{fontSize:56,marginBottom:20,color:'#4caf50'}}>V</div>
         <h2 style={{fontSize:22,color:'#1565c0',marginBottom:12}}>Form Submitted Successfully <span className="he">/ הטופס נשלח בהצלחה</span></h2>
-        <p style={{fontSize:14,color:'#444',lineHeight:1.7}}>Your calculation is being processed.<br/>Our team will contact you shortly.<br/><span className="he">החישוב שלך מעובד כעת. הצוות שלנו יצור איתך קשר בקרוב.</span></p>
+        <p style={{fontSize:14,color:'#444',lineHeight:1.7}}>Your calculation is being processed.<br/>Our team will contact you shortly.<br/><span className="he" style={{display:'block',direction:'rtl',textAlign:'center'}}>החישוב שלך מעובד כעת. הצוות שלנו יצור איתך קשר בקרוב.</span></p>
       </div>
       <div className="hk-ftr">
         <p>All calculation forms for foreign workers' rights in Israel created by the Foundation are exclusively owned and protected by copyright.</p>
@@ -431,6 +480,20 @@ export default function App() {
       <div className="hk-hdr" ref={topRef}>
         <img src={LOGO_B64} alt="Hakeren"/>
         <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <div id="google_translate_element" className="notranslate" translate="no" style={{position:'absolute',left:'-9999px'}}/>
+          <select className="notranslate" translate="no" value={curLang} style={{fontSize:12,padding:'4px 8px',borderRadius:6,border:'1px solid #90caf9',color:'#1565c0',fontWeight:600,cursor:'pointer'}} onChange={e=>{
+            const code = e.target.value;
+            setCurLang(code);
+            document.cookie='googtrans=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            document.cookie='googtrans=;path=/;domain='+window.location.hostname+';expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            if (code) {
+              document.cookie='googtrans=/en/'+code+';path=/';
+              document.cookie='googtrans=/en/'+code+';path=/;domain='+window.location.hostname;
+            }
+            window.location.reload();
+          }}>
+            {langMap.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}
+          </select>
           <span style={{fontSize:11,color:'#1565c0',fontWeight:600}}>Worker Rights Calculation <span className="he">/ חישוב זכויות עובד</span></span>
         </div>
       </div>
@@ -446,7 +509,7 @@ export default function App() {
         <div className="pay-notice">
           <strong>Important - Payment Notice <span className="he">/ הודעה חשובה - תשלום</span></strong>
           <span>Results will be provided <span style={{color:'#e65100',fontWeight:700}}>only to those who have paid by credit card (Upay)</span>. If you wish to pay by <span style={{color:'#e65100',fontWeight:700,textDecoration:'underline'}}>cash or bank transfer</span>, please pay by bank transfer and upload the payment confirmation at the following link: <a href="https://uploadpayment.vercel.app/" target="_blank" rel="noopener noreferrer" style={{color:'#1565c0',fontWeight:700}}>https://uploadpayment.vercel.app/</a></span>
-          <span className="he" style={{display:'block',marginTop:8}}>התוצאות יימסרו רק למי ששילם/ה בכרטיס אשראי (Upay). אם ברצונך לשלם בהעברה בנקאית, יש לשלם בהעברה בנקאית ולהעלות את אישור התשלום בקישור: <a href="https://uploadpayment.vercel.app/" target="_blank" rel="noopener noreferrer" style={{color:'#1565c0',fontWeight:700}}>https://uploadpayment.vercel.app/</a></span>
+          <span className="he" style={{display:'block',marginTop:8,direction:'rtl',textAlign:'right'}}>התוצאות יימסרו רק למי ששילם/ה בכרטיס אשראי (Upay). אם ברצונך לשלם בהעברה בנקאית, יש לשלם בהעברה בנקאית ולהעלות את אישור התשלום בקישור: <a href="https://uploadpayment.vercel.app/" target="_blank" rel="noopener noreferrer" style={{color:'#1565c0',fontWeight:700}}>https://uploadpayment.vercel.app/</a></span>
           <span style={{display:'block',marginTop:8,fontWeight:600}}>Phone: 050-5750054 | Phone: 072-2243333</span>
         </div>
 
@@ -473,7 +536,7 @@ export default function App() {
             {page===1&&<>
               <p className="st">Employee Information: <span className="he">/ פרטי העובד/ת</span></p>
               <F label="Full Name" he="שם מלא" req hint="Hebrew or English letters only / עברית או אנגלית בלבד" err={E('name')}>
-                <input {...inp('name')} value={f.name} onChange={e=>set('name',heEnOnly(e.target.value))} onBlur={()=>touch('name')} placeholder="Full name"/>
+                <input {...inp('name')} value={f.name} onChange={e=>set('name',e.target.value)} onBlur={()=>touch('name')} placeholder="Full name"/>
               </F>
               <F label="Mobile Phone" he="טלפון נייד" req err={E('phone')}>
                 <input {...inp('phone')} type="tel" maxLength={PHONE_MAX_LEN} value={f.phone} onChange={e=>set('phone',e.target.value)} onBlur={()=>touch('phone')} placeholder="+972 / 05X-XXXXXXX"/>
@@ -481,8 +544,8 @@ export default function App() {
               <F label="Email" he="אימייל" err={E('email')}>
                 <input {...inp('email')} type="email" maxLength={EMAIL_MAX_LEN} value={f.email} onChange={e=>set('email',e.target.value)} onBlur={()=>touch('email')} placeholder="worker@example.com"/>
               </F>
-              <F label="Passport Number" he="מספר דרכון" req hint="Hebrew or English letters only / עברית או אנגלית בלבד" err={E('passport')}>
-                <input {...inp('passport')} value={f.passport} onChange={e=>set('passport',heEnOnly(e.target.value))} placeholder="Passport number"/>
+              <F label="Passport Number" he="מספר דרכון" req hint="English letters and/or numbers only / אותיות אנגליות ו/או מספרים בלבד" err={E('passport')}>
+                <input {...inp('passport')} value={f.passport} onChange={e=>set('passport',e.target.value)} placeholder="Passport number"/>
               </F>
               <F label="Upload Your Passport Photo" he="העלאת צילום דרכון">
                 <input type="file" accept="image/*,.pdf" style={{fontSize:13}} onChange={e=>{
@@ -512,7 +575,7 @@ export default function App() {
                 <Err msg={E('pikadon')}/>
               </div>
               <F label="Full Address: Street, Number and City" he="כתובת מלאה: רחוב, מספר ועיר" req hint="Hebrew or English letters only / עברית או אנגלית בלבד" err={E('address')}>
-                <input {...inp('address')} value={f.address} onChange={e=>set('address',heEnOnly(e.target.value))} placeholder="Street, Number and City"/>
+                <input {...inp('address')} value={f.address} onChange={e=>set('address',e.target.value)} placeholder="Street, Number and City"/>
               </F>
             </>}
 
@@ -521,14 +584,14 @@ export default function App() {
               <p className="st">Employer's Information: <span className="he">/ פרטי המעסיק</span></p>
               <div className="g2">
                 <F label="First Name" he="שם פרטי" req hint="Hebrew or English only" err={E('empFirstName')}>
-                  <input {...inp('empFirstName')} value={f.empFirstName} onChange={e=>set('empFirstName',heEnOnly(e.target.value))}/>
+                  <input {...inp('empFirstName')} value={f.empFirstName} onChange={e=>set('empFirstName',e.target.value)}/>
                 </F>
                 <F label="Family Name" he="שם משפחה" req hint="Hebrew or English only" err={E('empFamilyName')}>
-                  <input {...inp('empFamilyName')} value={f.empFamilyName} onChange={e=>set('empFamilyName',heEnOnly(e.target.value))}/>
+                  <input {...inp('empFamilyName')} value={f.empFamilyName} onChange={e=>set('empFamilyName',e.target.value)}/>
                 </F>
               </div>
               <F label="Address" he="כתובת" req hint="Hebrew or English letters only / עברית או אנגלית בלבד" err={E('empAddress')}>
-                <input {...inp('empAddress')} value={f.empAddress} onChange={e=>set('empAddress',heEnOnly(e.target.value))}/>
+                <input {...inp('empAddress')} value={f.empAddress} onChange={e=>set('empAddress',e.target.value)}/>
               </F>
               <div className="g2">
                 <F label="Cell phone number" he="מספר טלפון נייד">
@@ -543,8 +606,8 @@ export default function App() {
                 <ChkGrp opts={contactOpts} vals={f.empContact} on={v=>set('empContact',v)}/>
               </div>
               <div className="g2">
-                <F label="Contact Full Name" he="שם מלא של איש הקשר" hint="Hebrew or English only">
-                  <input {...inp('empContactName')} value={f.empContactName} onChange={e=>set('empContactName',heEnOnly(e.target.value))}/>
+                <F label="Contact Full Name" he="שם מלא של איש הקשר" hint="Hebrew or English only" err={E('empContactName')}>
+                  <input {...inp('empContactName')} value={f.empContactName} onChange={e=>set('empContactName',e.target.value)}/>
                 </F>
                 <F label="Contact Phone" he="טלפון של איש הקשר" err={E('empContactPhone')}>
                   <input {...inp('empContactPhone')} type="tel" value={f.empContactPhone} onChange={e=>set('empContactPhone',e.target.value)} placeholder="number"/>
@@ -583,7 +646,7 @@ export default function App() {
               <p style={{fontSize:12,color:'#555',marginBottom:10,lineHeight:1.5,background:'#f5f5f5',padding:'8px 12px',borderRadius:8,border:'1px solid #e0e0e0'}}>
                 Your <strong>total salary</strong> = base salary + pocket money.<br/>
                 Shabbat payment is calculated separately and is not part of the base salary.
-                <br/><span className="he">שכרך הכולל = שכר בסיס + דמי כיס. תשלום עבור שבת מחושב בנפרד ואינו חלק משכר הבסיס.</span>
+                <br/><span className="he" style={{display:'block',direction:'rtl',textAlign:'right'}}>שכרך הכולל = שכר בסיס + דמי כיס. תשלום עבור שבת מחושב בנפרד ואינו חלק משכר הבסיס.</span>
               </p>
               <div className="g2">
                 <F label="Base salary per month (NIS)" he="שכר בסיס לחודש (בשקלים)" req err={E('salary')}>
@@ -597,7 +660,7 @@ export default function App() {
               <p style={{fontSize:14,fontWeight:700,color:'#1565c0',margin:'14px 0 8px'}}>Salary Updates <span className="he">/ עדכוני שכר</span></p>
               <p style={{fontSize:12,color:'#555',marginBottom:10,lineHeight:1.5,background:'#f5f5f5',padding:'8px 12px',borderRadius:8,border:'1px solid #e0e0e0'}}>
                 Please list <strong>every salary update</strong> you received throughout your employment. For each update, enter the <strong>updated salary (excluding pocket money)</strong> and the <strong>date from which it became valid</strong>.
-                <br/><span className="he">נא לפרט את כל עדכוני השכר שהיו במהלך ההעסקה. לכל עדכון יש להזין את המשכורת המעודכנת (ללא דמי כיס) ואת התאריך שממנו היא תקפה.</span>
+                <br/><span className="he" style={{display:'block',direction:'rtl',textAlign:'right'}}>נא לפרט את כל עדכוני השכר שהיו במהלך ההעסקה. לכל עדכון יש להזין את המשכורת המעודכנת (ללא דמי כיס) ואת התאריך שממנו היא תקפה.</span>
               </p>
               {f.salaryIncreases.map((si,i)=><div key={i} className="sal-blk">
                 <button className="rm" onClick={()=>rmSI(i)}>X</button>
@@ -721,8 +784,8 @@ export default function App() {
               {f.lastSalaryNeeded==='yes'&&<F label="Last date salary was paid" he="התאריך האחרון שבו שולם שכר" hint="The last date you received salary payment" err={E('lastSalaryDate')}>
                 <input {...inp('lastSalaryDate')} type="date" value={f.lastSalaryDate} onChange={e=>set('lastSalaryDate',e.target.value)}/>
               </F>}
-              <F label="Additional comments or information:" he="הערות או מידע נוסף:" hint="Hebrew or English letters only / עברית או אנגלית בלבד">
-                <textarea {...inp('comments')} style={{...inp('comments').style,minHeight:80,resize:'vertical'}} value={f.comments} onChange={e=>set('comments',heEnOnly(e.target.value))}/>
+              <F label="Additional comments or information:" he="הערות או מידע נוסף:" hint="Hebrew or English letters only / עברית או אנגלית בלבד" err={E('comments')}>
+                <textarea {...inp('comments')} style={{...inp('comments').style,minHeight:80,resize:'vertical'}} value={f.comments} onChange={e=>set('comments',e.target.value)}/>
               </F>
             </>}
 
