@@ -380,7 +380,7 @@ export default function App() {
         pageLanguage: 'en',
         includedLanguages: 'tl,ro,uk,ru,zh-CN,si,hi,ar,fil,th,id,vi',
         layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
-        autoDisplay: false
+        autoDisplay: true
       }, 'google_translate_element');
     };
     const s = document.createElement('script');
