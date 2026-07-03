@@ -370,27 +370,8 @@ export default function App() {
   }, [f]);
 
   // Google Translate covers everything except Hebrew (permanently translated in-page above)
-  // and English (the source language).
-  const langMap = [
-    {code:'',label:'English (Original)'},
-    {code:'tl',label:'Tagalog'},
-    {code:'ro',label:'Romanian'},
-    {code:'uk',label:'Ukrainian'},
-    {code:'ru',label:'Russian'},
-    {code:'zh-CN',label:'Chinese'},
-    {code:'si',label:'Sinhala'},
-    {code:'hi',label:'Hindi'},
-    {code:'ar',label:'Arabic'},
-    {code:'fil',label:'Filipino'},
-    {code:'th',label:'Thai'},
-    {code:'id',label:'Indonesian'},
-    {code:'vi',label:'Vietnamese'},
-  ];
-  const [curLang, setCurLang] = useState('');
-  useEffect(() => {
-    const m = document.cookie.match(/googtrans=\/en\/([a-zA-Z-]+)/);
-    if (m) setCurLang(m[1]);
-  }, []);
+  // and English (the source language). Shown as Google's own native widget so language
+  // switching happens via a genuine, trusted user click rather than a synthetic JS event.
   useEffect(() => {
     if (window.googleTranslateElementInit) return;
     document.documentElement.lang = 'en';
@@ -480,20 +461,7 @@ export default function App() {
       <div className="hk-hdr" ref={topRef}>
         <img src={LOGO_B64} alt="Hakeren"/>
         <div style={{display:'flex',alignItems:'center',gap:12}}>
-          <div id="google_translate_element" className="notranslate" translate="no" style={{position:'absolute',left:'-9999px'}}/>
-          <select className="notranslate" translate="no" value={curLang} style={{fontSize:12,padding:'4px 8px',borderRadius:6,border:'1px solid #90caf9',color:'#1565c0',fontWeight:600,cursor:'pointer'}} onChange={e=>{
-            const code = e.target.value;
-            setCurLang(code);
-            document.cookie='googtrans=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT';
-            document.cookie='googtrans=;path=/;domain='+window.location.hostname+';expires=Thu, 01 Jan 1970 00:00:00 GMT';
-            if (code) {
-              document.cookie='googtrans=/en/'+code+';path=/';
-              document.cookie='googtrans=/en/'+code+';path=/;domain='+window.location.hostname;
-            }
-            window.location.reload();
-          }}>
-            {langMap.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}
-          </select>
+          <div id="google_translate_element" className="notranslate"/>
           <span style={{fontSize:11,color:'#1565c0',fontWeight:600}}>Worker Rights Calculation <span className="he">/ חישוב זכויות עובד</span></span>
         </div>
       </div>
