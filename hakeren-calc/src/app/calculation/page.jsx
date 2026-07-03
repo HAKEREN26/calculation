@@ -176,7 +176,8 @@ async function submitToMake(f) {
 
 // ΓöÇΓöÇ Validators ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
-const isPhone = v => { const d = v.replace(/\D/g,''); return /^[\d\s\-\+\(\)]*$/.test(v.trim()) && d.length >= 7 && d.length <= 15; };
+// Israeli mobile number: local (05XXXXXXXX, 10 digits) or with country code (9725XXXXXXXX / +9725XXXXXXXX).
+const isPhone = v => { const d = v.replace(/\D/g,''); return /^05\d{8}$/.test(d) || /^9725\d{8}$/.test(d); };
 const PHONE_MAX_LEN = 20;
 const EMAIL_MAX_LEN = 254;
 const isPosNum = v => v !== '' && !isNaN(v) && Number(v) >= 0;
