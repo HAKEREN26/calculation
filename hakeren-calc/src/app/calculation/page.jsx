@@ -270,8 +270,10 @@ const css = `
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:#fff;font-family:'Open Sans',sans-serif;color:#222}
   .pw{max-width:780px;margin:0 auto;padding:0 16px 40px}
-  .hk-hdr{background:#fff;border-bottom:2px solid #1565c0;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-  .hk-hdr img{height:52px}
+  .hk-hdr{background:#fff;border-bottom:2px solid #1565c0;padding:14px 24px;position:sticky;top:0;z-index:100;text-align:center}
+  .hk-hdr img{height:84px}
+  .hk-hdr-side{position:absolute;top:50%;right:24px;transform:translateY(-50%);display:flex;align-items:center;gap:12px}
+  @media(max-width:700px){.hk-hdr-side{position:static;transform:none;justify-content:center;margin-top:8px}}
   .hk-hero{padding:24px 0 18px;border-bottom:1px solid #e0e8f5;margin-bottom:20px}
   .hk-hero h1{font-size:20px;font-weight:700;color:#1565c0;margin-bottom:12px;text-align:center}
   .hk-hero p{font-size:13px;color:#444;line-height:1.7;margin-bottom:8px}
@@ -461,7 +463,7 @@ export default function App() {
       <style dangerouslySetInnerHTML={{__html: css}} />
       <div className="hk-hdr" ref={topRef}>
         <img src={LOGO_B64} alt="Hakeren"/>
-        <div style={{display:'flex',alignItems:'center',gap:12}}>
+        <div className="hk-hdr-side">
           <div id="google_translate_element" className="notranslate"/>
           <span style={{fontSize:11,color:'#1565c0',fontWeight:600}}>Worker Rights Calculation <span className="he">/ חישוב זכויות עובד</span></span>
         </div>
