@@ -608,10 +608,17 @@ export default function App() {
                 <Err msg={E('resignReason')}/>
               </div>}
               <F label="When did you provide or receive advance notice?" he="מתי ניתנה או התקבלה הודעה מוקדמת?" req err={E('noticeDate')}>
-                <input {...inp('noticeDate')} type="date" value={f.noticeDate} onChange={e=>set('noticeDate',e.target.value)}/>
+                <input {...inp('noticeDate')} type="date" value={f.noticeDate} onChange={e=>{
+                  const nd = e.target.value;
+                  set('noticeDate', nd);
+                  if (nd && f.end) {
+                    const days = Math.round((new Date(f.end) - new Date(nd)) / 86400000);
+                    if (days >= 0) set('noticeDaysGiven', String(days));
+                  }
+                }}/>
               </F>
-              <F label="How many advance notice days were given?" he="כמה ימי הודעה מוקדמת ניתנו?" req hint="Enter 0 if no advance notice was given">
-                <input {...inp('noticeDaysGiven')} type="number" min="0" max="30" value={f.noticeDaysGiven} onChange={e=>set('noticeDaysGiven',e.target.value)} placeholder="0"/>
+              <F label="How many advance notice days were given?" he="כמה ימי הודעה מוקדמת ניתנו?" hint={f.noticeDate && f.end ? 'Auto-calculated — you can edit manually / חושב אוטומטית — ניתן לשנות ידנית' : 'Enter 0 if no advance notice was given'}>
+                <input {...inp('noticeDaysGiven')} type="number" min="0" value={f.noticeDaysGiven} onChange={e=>set('noticeDaysGiven',e.target.value)} placeholder="0"/>
               </F>
               <p style={{fontSize:14,fontWeight:700,color:'#1565c0',margin:'14px 0 4px'}}>Monthly Salary <span className="he">/ שכר חודשי</span></p>
               <p style={{fontSize:12,color:'#555',marginBottom:10,lineHeight:1.5,background:'#f5f5f5',padding:'8px 12px',borderRadius:8,border:'1px solid #e0e0e0'}}>
