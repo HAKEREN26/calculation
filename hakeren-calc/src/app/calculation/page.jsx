@@ -322,21 +322,22 @@ const css = `
   .sal-blk{background:#f0f6ff;border:1px solid #c5d9f0;border-radius:5px;padding:12px;margin-bottom:8px;position:relative}
   .sal-blk .rm{position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;font-size:16px;color:#e53935;line-height:1}
   .add-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border:1.5px dashed #90caf9;border-radius:4px;background:transparent;color:#1565c0;font-size:12px;cursor:pointer;font-weight:600;font-family:inherit;margin-top:4px}
-  .hk-ftr{background:#f0f4f8;border-top:2px solid #1565c0;padding:18px 24px;text-align:center;font-size:11px;color:#555;line-height:1.8;margin-top:16px}
-  .hk-ftr p{margin-bottom:3px}
+  .hk-ftr{background:#f0f4f8;border-top:2px solid #1565c0;padding:14px 24px;text-align:center;font-size:10px;color:#666;line-height:1.6;margin-top:16px}
+  .hk-ftr .ftr-en{max-width:720px;margin:0 auto 6px}
+  .hk-ftr .ftr-he{max-width:720px;margin:0 auto;direction:rtl;padding-top:6px;border-top:1px solid #dde5ee}
   .progress-bar{height:4px;background:#e0e8f5;margin-bottom:0}
   .progress-fill{height:100%;background:#1565c0;transition:width 0.3s}
   @media(max-width:600px){.g2,.g3{grid-template-columns:1fr}.hk-hero h1{font-size:16px}}
 `;
 
 function Chips({opts, val, on, hasErr}) {
-  return <div className="rg">{opts.map(o=><button key={o.v} className={`rb${val===o.v?' on':''}${hasErr&&!val?' err-chip':''}`} onClick={()=>on(o.v)}>{o.l}{o.he&&<span className="he"> / {o.he}</span>}</button>)}</div>;
+  return <div className="rg">{opts.map(o=><button key={o.v} className={`rb${val===o.v?' on':''}${hasErr&&!val?' err-chip':''}`} onClick={()=>on(o.v)}>{o.l}{o.he&&<span className="he notranslate"> / {o.he}</span>}</button>)}</div>;
 }
 function ChkGrp({opts, vals, on}) {
-  return <div className="chk-grp">{opts.map(o=><label key={o.v} className="chk-item"><input type="checkbox" checked={vals.includes(o.v)} onChange={e=>{if(e.target.checked)on([...vals,o.v]);else on(vals.filter(v=>v!==o.v));}}/>{o.l}{o.he&&<span className="he"> / {o.he}</span>}</label>)}</div>;
+  return <div className="chk-grp">{opts.map(o=><label key={o.v} className="chk-item"><input type="checkbox" checked={vals.includes(o.v)} onChange={e=>{if(e.target.checked)on([...vals,o.v]);else on(vals.filter(v=>v!==o.v));}}/>{o.l}{o.he&&<span className="he notranslate"> / {o.he}</span>}</label>)}</div>;
 }
 function F({label, he, req, hint, span, err, children}) {
-  return <div className="field" style={span?{gridColumn:'1/-1'}:{}} id={err?`err-${label?.replace(/\s/g,'_')}`:''}><label>{label}{he&&<span className="he"> / {he}</span>}{req&&<span className="req-star"> *</span>}</label>{children}{hint&&<p className="hint">{hint}</p>}{err&&<p className="errmsg">{err}</p>}</div>;
+  return <div className="field" style={span?{gridColumn:'1/-1'}:{}} id={err?`err-${label?.replace(/\s/g,'_')}`:''}><label>{label}{he&&<span className="he notranslate"> / {he}</span>}{req&&<span className="req-star"> *</span>}</label>{children}{hint&&<p className="hint">{hint}</p>}{err&&<p className="errmsg">{err}</p>}</div>;
 }
 function Err({msg}) { return msg?<p className="errmsg">{msg}</p>:null; }
 
@@ -444,19 +445,12 @@ export default function App() {
       <div className="hk-hdr"><img src={LOGO_B64} alt="Hakeren"/></div>
       <div className="pw" style={{textAlign:'center',paddingTop:60}}>
         <div style={{fontSize:56,marginBottom:20,color:'#4caf50'}}>V</div>
-        <h2 style={{fontSize:22,color:'#1565c0',marginBottom:12}}>Form Submitted Successfully <span className="he">/ הטופס נשלח בהצלחה</span></h2>
-        <p style={{fontSize:14,color:'#444',lineHeight:1.7}}>Your calculation is being processed.<br/>Our team will contact you shortly.<br/><span className="he" style={{display:'block',direction:'rtl',textAlign:'center'}}>החישוב שלך מעובד כעת. הצוות שלנו יצור איתך קשר בקרוב.</span></p>
+        <h2 style={{fontSize:22,color:'#1565c0',marginBottom:12}}>Form Submitted Successfully <span className="he notranslate">/ הטופס נשלח בהצלחה</span></h2>
+        <p style={{fontSize:14,color:'#444',lineHeight:1.7}}>Your calculation is being processed.<br/>Our team will contact you shortly.<br/><span className="he notranslate" style={{display:'block',direction:'rtl',textAlign:'center'}}>החישוב שלך מעובד כעת. הצוות שלנו יצור איתך קשר בקרוב.</span></p>
       </div>
       <div className="hk-ftr">
-        <p>All calculation forms for foreign workers' rights in Israel created by the Foundation are exclusively owned and protected by copyright.
-          <span className="he" style={{display:'block',direction:'rtl'}}>כל טפסי החישוב לזכויות עובדים זרים בישראל שנוצרו על ידי הקרן הם בבעלות בלעדית ומוגנים בזכויות יוצרים.</span>
-        </p>
-        <p>All rights reserved by the Israeli Foundation for Foreign Worker Rights. (C)
-          <span className="he" style={{display:'block',direction:'rtl'}}>כל הזכויות שמורות להקרן הישראלית לזכויות העובד הזר. (C)</span>
-        </p>
-        <p>All forms for Social Benefits Calculation for foreign workers in Israel created by Hakeren are proprietary and copyrighted materials. Any unauthorized reproduction, copying, or duplication of content from this website or the forms provided is strictly prohibited. Hakeren reserves all rights. (C)
-          <span className="he" style={{display:'block',direction:'rtl'}}>כל הטפסים לחישוב זכויות סוציאליות לעובדים זרים בישראל שנוצרו על ידי הקרן הם רכוש קנייני ומוגן בזכויות יוצרים. כל שכפול, העתקה או שימוש בתוכן מהאתר או מהטפסים המצורפים ללא אישור אסור בהחלט. הקרן שומרת על כל הזכויות. (C)</span>
-        </p>
+        <p className="ftr-en">All calculation forms for foreign workers' rights in Israel are proprietary materials of Hakeren — the Israeli Foundation for Foreign Worker Rights — and are protected by copyright. Any unauthorized reproduction, copying, or duplication of content from this website or the forms provided is strictly prohibited. All rights reserved. &copy;</p>
+        <p className="ftr-he he notranslate">כל טפסי החישוב לזכויות עובדים זרים בישראל הם רכוש קנייני של הקרן הישראלית לזכויות העובד הזר ומוגנים בזכויות יוצרים. חל איסור מוחלט על העתקה, שכפול או שימוש בתוכן מהאתר או מהטפסים ללא אישור. כל הזכויות שמורות. &copy;</p>
       </div>
     </>
   );
@@ -468,7 +462,7 @@ export default function App() {
         <img src={LOGO_B64} alt="Hakeren"/>
         <div className="hk-hdr-side">
           <div id="google_translate_element" className="notranslate"/>
-          <span style={{fontSize:11,color:'#1565c0',fontWeight:600}}>Worker Rights Calculation <span className="he">/ חישוב זכויות עובד</span></span>
+          <span style={{fontSize:11,color:'#1565c0',fontWeight:600}}>Worker Rights Calculation <span className="he notranslate">/ חישוב זכויות עובד</span></span>
         </div>
       </div>
       <div className="progress-bar"><div className="progress-fill" style={{width:`${pct}%`}}/></div>
@@ -477,17 +471,17 @@ export default function App() {
         <div className="hk-hero">
           <h1>טופס חישוב | Calculation Form | Форма расчёта</h1>
           <p>Welcome to the Hakeren Social Benefits Calculation Page. HAKEREN is the prominent Israeli company servicing Foreign Workers in Israel, specializing in precise Social Benefits calculations. Alongside HAKEREN, our team of skilled professionals is dedicated to delivering accurate wage calculations in strict compliance by the law for employers and employing. To obtain a precise salary calculation, kindly complete the form below.
-            <span className="he" style={{display:'block',marginTop:6,direction:'rtl',textAlign:'right'}}>ברוכים הבאים לעמוד חישוב הזכויות הסוציאליות של הקרן הישראלית. הקרן היא החברה הישראלית המובילה בשירות עובדים זרים בישראל, המתמחה בחישובים מדויקים של זכויות סוציאליות. לצד הקרן, צוות אנשי המקצוע המנוסים שלנו מחויב לספק חישובי שכר מדויקים, בהתאם מלא לחוק, לעובדים ולמעסיקים. לקבלת חישוב שכר מדויק, אנא מלאו את הטופס הבא.</span>
+            <span className="he notranslate" style={{display:'block',marginTop:6,direction:'rtl',textAlign:'right'}}>ברוכים הבאים לעמוד חישוב הזכויות הסוציאליות של הקרן הישראלית. הקרן היא החברה הישראלית המובילה בשירות עובדים זרים בישראל, המתמחה בחישובים מדויקים של זכויות סוציאליות. לצד הקרן, צוות אנשי המקצוע המנוסים שלנו מחויב לספק חישובי שכר מדויקים, בהתאם מלא לחוק, לעובדים ולמעסיקים. לקבלת חישוב שכר מדויק, אנא מלאו את הטופס הבא.</span>
           </p>
           <p className="b">Hakeren the sole company that meticulously verifies your entitlements to ensure accurate salary assessments. Our commitment extends to confirming whether you have received the precise salary that aligns with your deserving job.
-            <span className="he" style={{display:'block',marginTop:6,direction:'rtl',textAlign:'right'}}>הקרן היא החברה היחידה שבודקת בקפידה את זכאותכם כדי להבטיח הערכת שכר מדויקת. המחויבות שלנו כוללת גם אימות שקיבלתם את השכר המדויק המתאים לתפקידכם.</span>
+            <span className="he notranslate" style={{display:'block',marginTop:6,direction:'rtl',textAlign:'right'}}>הקרן היא החברה היחידה שבודקת בקפידה את זכאותכם כדי להבטיח הערכת שכר מדויקת. המחויבות שלנו כוללת גם אימות שקיבלתם את השכר המדויק המתאים לתפקידכם.</span>
           </p>
         </div>
 
         <div className="pay-notice">
-          <strong>Important - Payment Notice <span className="he">/ הודעה חשובה - תשלום</span></strong>
+          <strong>Important - Payment Notice <span className="he notranslate">/ הודעה חשובה - תשלום</span></strong>
           <span>Results will be provided <span style={{color:'#e65100',fontWeight:700}}>only to those who have paid by credit card (Upay)</span>. If you wish to pay by <span style={{color:'#e65100',fontWeight:700,textDecoration:'underline'}}>cash or bank transfer</span>, please pay by bank transfer and upload the payment confirmation at the following link: <a href="https://payment.hakeren.org.il" target="_blank" rel="noopener noreferrer" style={{color:'#1565c0',fontWeight:700}}>payment.hakeren.org.il</a></span>
-          <span className="he" style={{display:'block',marginTop:8,direction:'rtl',textAlign:'right'}}>התוצאות יימסרו רק למי ששילם/ה בכרטיס אשראי (Upay). אם ברצונך לשלם בהעברה בנקאית, יש לשלם בהעברה בנקאית ולהעלות את אישור התשלום בקישור: <a href="https://payment.hakeren.org.il" target="_blank" rel="noopener noreferrer" style={{color:'#1565c0',fontWeight:700}}>payment.hakeren.org.il</a></span>
+          <span className="he notranslate" style={{display:'block',marginTop:8,direction:'rtl',textAlign:'right'}}>התוצאות יימסרו רק למי ששילם/ה בכרטיס אשראי (Upay). אם ברצונך לשלם בהעברה בנקאית, יש לשלם בהעברה בנקאית ולהעלות את אישור התשלום בקישור: <a href="https://payment.hakeren.org.il" target="_blank" rel="noopener noreferrer" style={{color:'#1565c0',fontWeight:700}}>payment.hakeren.org.il</a></span>
           <span style={{display:'block',marginTop:8,fontWeight:600}}>Phone: 050-5750054 | Phone: 072-2243333</span>
         </div>
 
@@ -505,14 +499,14 @@ export default function App() {
 
         <div className="fc">
           <div className="fc-hdr">
-            <span>Page {page} of 4 - {pageTitle} <span className="he" style={{color:'#cfe4fb'}}>/ עמוד {page} מתוך 4 - {pageTitleHe}</span></span>
-            <button onClick={saveDraft} style={{padding:'4px 12px',fontSize:11,border:'1px solid rgba(255,255,255,0.5)',borderRadius:3,background:'rgba(255,255,255,0.15)',color:'#fff',cursor:'pointer',fontFamily:'inherit'}}>Save draft <span className="he">/ שמירת טיוטה</span></button>
+            <span>Page {page} of 4 - {pageTitle} <span className="he notranslate" style={{color:'#cfe4fb'}}>/ עמוד {page} מתוך 4 - {pageTitleHe}</span></span>
+            <button onClick={saveDraft} style={{padding:'4px 12px',fontSize:11,border:'1px solid rgba(255,255,255,0.5)',borderRadius:3,background:'rgba(255,255,255,0.15)',color:'#fff',cursor:'pointer',fontFamily:'inherit'}}>Save draft <span className="he notranslate">/ שמירת טיוטה</span></button>
           </div>
           <div className="fc-body">
 
             {/* ΓòÉΓòÉΓòÉ PAGE 1 ΓòÉΓòÉΓòÉ */}
             {page===1&&<>
-              <p className="st">Employee Information: <span className="he">/ פרטי העובד/ת</span></p>
+              <p className="st">Employee Information: <span className="he notranslate">/ פרטי העובד/ת</span></p>
               <F label="Full Name" he="שם מלא" req hint="Hebrew or English letters only / עברית או אנגלית בלבד" err={E('name')}>
                 <input {...inp('name')} value={f.name} onChange={e=>set('name',e.target.value)} onBlur={()=>touch('name')} placeholder="Full name"/>
               </F>
@@ -543,12 +537,12 @@ export default function App() {
                 </select>
               </F>
               <div className="field">
-                <label>Are you receiving salary through a nursing company or private employer? <span className="he">/ האם את/ה מקבל/ת שכר דרך חברת סיעוד או מעסיק פרטי?</span> <span className="req-star">*</span></label>
+                <label>Are you receiving salary through a nursing company or private employer? <span className="he notranslate">/ האם את/ה מקבל/ת שכר דרך חברת סיעוד או מעסיק פרטי?</span> <span className="req-star">*</span></label>
                 <ChkGrp opts={[{v:'private',l:'Private Employer',he:'מעסיק פרטי'},{v:'nursing',l:'Nursing Company',he:'חברת סיעוד'}]} vals={f.empSource} on={v=>set('empSource',v)}/>
                 <Err msg={E('empSource')}/>
               </div>
               <div className="field">
-                <label>Would you like a calculation for PIKADON (deposit amount)? <span className="he">/ האם תרצה/י חישוב לפיקדון?</span> <span className="req-star">*</span></label>
+                <label>Would you like a calculation for PIKADON (deposit amount)? <span className="he notranslate">/ האם תרצה/י חישוב לפיקדון?</span> <span className="req-star">*</span></label>
                 <Chips val={f.pikadon} on={v=>set('pikadon',v)} opts={YN} hasErr={showErrs&&errs.pikadon}/>
                 <Err msg={E('pikadon')}/>
               </div>
@@ -559,7 +553,7 @@ export default function App() {
 
             {/* ΓòÉΓòÉΓòÉ PAGE 2 ΓòÉΓòÉΓòÉ */}
             {page===2&&<>
-              <p className="st">Employer's Information: <span className="he">/ פרטי המעסיק</span></p>
+              <p className="st">Employer's Information: <span className="he notranslate">/ פרטי המעסיק</span></p>
               <div className="g2">
                 <F label="First Name" he="שם פרטי" req hint="Hebrew or English only" err={E('empFirstName')}>
                   <input {...inp('empFirstName')} value={f.empFirstName} onChange={e=>set('empFirstName',e.target.value)}/>
@@ -580,7 +574,7 @@ export default function App() {
                 </F>
               </div>
               <div className="field">
-                <label style={{fontSize:13,fontWeight:700,color:'#1565c0'}}>Employer's Contact Person <span className="he">/ איש קשר של המעסיק</span></label>
+                <label style={{fontSize:13,fontWeight:700,color:'#1565c0'}}>Employer's Contact Person <span className="he notranslate">/ איש קשר של המעסיק</span></label>
                 <ChkGrp opts={contactOpts} vals={f.empContact} on={v=>set('empContact',v)}/>
               </div>
               <div className="g2">
@@ -595,7 +589,7 @@ export default function App() {
 
             {/* ΓòÉΓòÉΓòÉ PAGE 3 ΓòÉΓòÉΓòÉ */}
             {page===3&&<>
-              <p className="st">Employment Information: <span className="he">/ פרטי העסקה</span></p>
+              <p className="st">Employment Information: <span className="he notranslate">/ פרטי העסקה</span></p>
               <div className="g2">
                 <F label="Employment Start Date" he="תאריך תחילת העסקה" req err={E('start')}>
                   <input {...inp('start')} type="date" min="1950-01-01" max="2100-12-31" value={f.start} onChange={e=>set('start',e.target.value)}/>
@@ -605,12 +599,12 @@ export default function App() {
                 </F>
               </div>
               <div className="field">
-                <label style={{fontWeight:700,color:'#1565c0'}}>Reason of Termination <span className="he">/ סיבת סיום ההעסקה</span> <span className="req-star">*</span></label>
+                <label style={{fontWeight:700,color:'#1565c0'}}>Reason of Termination <span className="he notranslate">/ סיבת סיום ההעסקה</span> <span className="req-star">*</span></label>
                 <Chips opts={termOpts} val={f.termReason} on={v=>set('termReason',v)} hasErr={showErrs&&!f.termReason}/>
                 <Err msg={E('termReason')}/>
               </div>
               {f.termReason==='resign'&&<div className="field">
-                <label style={{fontWeight:700,color:'#1565c0'}}>Why did you resign? <span className="he">/ מדוע התפטרת?</span> <span className="req-star">*</span></label>
+                <label style={{fontWeight:700,color:'#1565c0'}}>Why did you resign? <span className="he notranslate">/ מדוע התפטרת?</span> <span className="req-star">*</span></label>
                 <ChkGrp opts={resignOpts} vals={f.resignReason} on={v=>set('resignReason',v)}/>
                 <Err msg={E('resignReason')}/>
               </div>}
@@ -627,11 +621,11 @@ export default function App() {
               <F label="How many advance notice days were given?" he="כמה ימי הודעה מוקדמת ניתנו?" hint={f.noticeDate && f.end ? 'Auto-calculated — you can edit manually / חושב אוטומטית — ניתן לשנות ידנית' : 'Enter 0 if no advance notice was given'}>
                 <input {...inp('noticeDaysGiven')} type="number" min="0" value={f.noticeDaysGiven} onChange={e=>set('noticeDaysGiven',e.target.value)} placeholder="0"/>
               </F>
-              <p style={{fontSize:14,fontWeight:700,color:'#1565c0',margin:'14px 0 4px'}}>Monthly Salary <span className="he">/ שכר חודשי</span></p>
+              <p style={{fontSize:14,fontWeight:700,color:'#1565c0',margin:'14px 0 4px'}}>Monthly Salary <span className="he notranslate">/ שכר חודשי</span></p>
               <p style={{fontSize:12,color:'#555',marginBottom:10,lineHeight:1.5,background:'#f5f5f5',padding:'8px 12px',borderRadius:8,border:'1px solid #e0e0e0'}}>
                 Your <strong>total salary</strong> = base salary + pocket money.<br/>
                 Shabbat payment is calculated separately and is not part of the base salary.
-                <br/><span className="he" style={{display:'block',direction:'rtl',textAlign:'right'}}>שכרך הכולל = שכר בסיס + דמי כיס. תשלום עבור שבת מחושב בנפרד ואינו חלק משכר הבסיס.</span>
+                <br/><span className="he notranslate" style={{display:'block',direction:'rtl',textAlign:'right'}}>שכרך הכולל = שכר בסיס + דמי כיס. תשלום עבור שבת מחושב בנפרד ואינו חלק משכר הבסיס.</span>
               </p>
               <div className="g2">
                 <F label="Base salary per month (NIS)" he="שכר בסיס לחודש (בשקלים)" req err={E('salary')}>
@@ -642,10 +636,10 @@ export default function App() {
                 </F>
               </div>
 
-              <p style={{fontSize:14,fontWeight:700,color:'#1565c0',margin:'14px 0 8px'}}>Salary Updates <span className="he">/ עדכוני שכר</span></p>
+              <p style={{fontSize:14,fontWeight:700,color:'#1565c0',margin:'14px 0 8px'}}>Salary Updates <span className="he notranslate">/ עדכוני שכר</span></p>
               <p style={{fontSize:12,color:'#555',marginBottom:10,lineHeight:1.5,background:'#f5f5f5',padding:'8px 12px',borderRadius:8,border:'1px solid #e0e0e0'}}>
                 Please list <strong>every salary update</strong> you received throughout your employment. For each update, enter the <strong>updated salary (excluding pocket money)</strong> and the <strong>date from which it became valid</strong>.
-                <br/><span className="he" style={{display:'block',direction:'rtl',textAlign:'right'}}>נא לפרט את כל עדכוני השכר שהיו במהלך ההעסקה. לכל עדכון יש להזין את המשכורת המעודכנת (ללא דמי כיס) ואת התאריך שממנו היא תקפה.</span>
+                <br/><span className="he notranslate" style={{display:'block',direction:'rtl',textAlign:'right'}}>נא לפרט את כל עדכוני השכר שהיו במהלך ההעסקה. לכל עדכון יש להזין את המשכורת המעודכנת (ללא דמי כיס) ואת התאריך שממנו היא תקפה.</span>
               </p>
               {f.salaryIncreases.map((si,i)=><div key={i} className="sal-blk">
                 <button className="rm" onClick={()=>rmSI(i)}>X</button>
@@ -658,19 +652,19 @@ export default function App() {
                   </F>
                 </div>
               </div>)}
-              <button className="add-btn" onClick={addSI}>+ Add salary increase <span className="he">/ הוספת עדכון שכר</span></button>
+              <button className="add-btn" onClick={addSI}>+ Add salary increase <span className="he notranslate">/ הוספת עדכון שכר</span></button>
 
               <F label="SHABAT payment (NIS)" he="תשלום עבור שבת (בשקלים)" hint="Separate from your base salary" err={E('shabat')} style={{marginTop:14}}>
                 <input {...inp('shabat')} type="number" min="0" value={f.shabat} onChange={e=>set('shabat',e.target.value)} placeholder="NIS"/>
               </F>
 
               <div className="field">
-                <label style={{fontWeight:700,color:'#1565c0'}}>Do you live at the workplace? <span className="he">/ האם את/ה גר/ה במקום העבודה?</span> <span className="req-star">*</span></label>
+                <label style={{fontWeight:700,color:'#1565c0'}}>Do you live at the workplace? <span className="he notranslate">/ האם את/ה גר/ה במקום העבודה?</span> <span className="req-star">*</span></label>
                 <Chips val={f.liveType} on={v=>set('liveType',v)} opts={[{v:'livein',l:'Live in',he:'מגורים במקום'},{v:'liveout_clean',l:'Live out - Cleaning',he:'מגורים בחוץ - ניקיון'},{v:'construction',l:'Construction',he:'בנייה'}]} hasErr={showErrs&&errs.liveType}/>
                 <Err msg={E('liveType')}/>
               </div>
               <div className="field">
-                <label style={{fontWeight:700,color:'#1565c0'}}>Do you work on weekends? <span className="he">/ האם את/ה עובד/ת בסופי שבוע?</span> <span className="req-star">*</span></label>
+                <label style={{fontWeight:700,color:'#1565c0'}}>Do you work on weekends? <span className="he notranslate">/ האם את/ה עובד/ת בסופי שבוע?</span> <span className="req-star">*</span></label>
                 <Chips val={f.worksWeekends} on={v=>set('worksWeekends',v)} opts={YN} hasErr={showErrs&&errs.worksWeekends}/>
                 <Err msg={E('worksWeekends')}/>
               </div>
@@ -685,11 +679,11 @@ export default function App() {
                 </F>
               </>}
 
-              <p style={{fontSize:14,fontWeight:700,color:'#1565c0',margin:'16px 0 4px'}}>Vacations in Home Country <span className="he">/ חופשות בארץ המוצא</span></p>
-              <p style={{fontSize:12,color:'#666',marginBottom:10}}>If you went on vacation to your home country, enter the dates for each trip. <span className="he">אם נסעת לחופשה בארץ המוצא שלך, יש להזין את התאריכים עבור כל נסיעה.</span></p>
+              <p style={{fontSize:14,fontWeight:700,color:'#1565c0',margin:'16px 0 4px'}}>Vacations in Home Country <span className="he notranslate">/ חופשות בארץ המוצא</span></p>
+              <p style={{fontSize:12,color:'#666',marginBottom:10}}>If you went on vacation to your home country, enter the dates for each trip. <span className="he notranslate">אם נסעת לחופשה בארץ המוצא שלך, יש להזין את התאריכים עבור כל נסיעה.</span></p>
               {f.vacations.map((v,i)=><div key={i} className="vac-blk">
                 {f.vacations.length>1&&<button className="rm" onClick={()=>rmV(i)}>X</button>}
-                <p style={{fontSize:13,fontWeight:700,color:'#1565c0',marginBottom:10}}>Vacation {i+1} <span className="he">/ חופשה {i+1}</span></p>
+                <p style={{fontSize:13,fontWeight:700,color:'#1565c0',marginBottom:10}}>Vacation {i+1} <span className="he notranslate">/ חופשה {i+1}</span></p>
                 <div className="g2">
                   <F label="Departure date" he="תאריך יציאה" err={E(`vac_${i}_dep`)}>
                     <input {...inp(`vac_${i}_dep`)} type="date" value={v.dep} onChange={e=>updV(i,'dep',e.target.value)}/>
@@ -699,7 +693,7 @@ export default function App() {
                   </F>
                 </div>
               </div>)}
-              <button className="add-btn" onClick={addV}>+ Add vacation <span className="he">/ הוספת חופשה</span></button>
+              <button className="add-btn" onClick={addV}>+ Add vacation <span className="he notranslate">/ הוספת חופשה</span></button>
 
               {(()=>{
                 const lessThan1Year = f.start && f.end && ((new Date(f.end) - new Date(f.start)) / (1000*60*60*24)) < 365;
@@ -727,25 +721,25 @@ export default function App() {
                 <input {...inp('holidayDaysWorked')} type="number" min="0" max="9" value={f.holidayDaysWorked} onChange={e=>set('holidayDaysWorked',e.target.value)} placeholder="0-9"/>
               </F>
               <div className="field" style={{marginTop:12}}>
-                <label style={{fontWeight:700,color:'#1565c0'}}>Did you have an existing pension arrangement before starting this job? <span className="he">/ האם היה לך הסדר פנסיוני קיים לפני תחילת העבודה?</span> <span className="req-star">*</span></label>
+                <label style={{fontWeight:700,color:'#1565c0'}}>Did you have an existing pension arrangement before starting this job? <span className="he notranslate">/ האם היה לך הסדר פנסיוני קיים לפני תחילת העבודה?</span> <span className="req-star">*</span></label>
                 <Chips val={f.existingPension} on={v=>set('existingPension',v)} opts={YN} hasErr={showErrs&&errs.existingPension}/>
                 <Err msg={E('existingPension')}/>
-                <p className="hint">If yes, pension is calculated from day 1. If no, pension starts from month 7. <span className="he">אם כן, הפנסיה מחושבת מהיום הראשון. אם לא, הפנסיה מתחילה מחודש 7.</span></p>
+                <p className="hint">If yes, pension is calculated from day 1. If no, pension starts from month 7. <span className="he notranslate">אם כן, הפנסיה מחושבת מהיום הראשון. אם לא, הפנסיה מתחילה מחודש 7.</span></p>
               </div>
               <div className="g2" style={{marginTop:12}}>
                 <div className="field">
-                  <label style={{fontWeight:700,color:'#1565c0'}}>Did you get paid for Pension? <span className="he">/ האם שולמה לך פנסיה?</span> <span className="req-star">*</span></label>
+                  <label style={{fontWeight:700,color:'#1565c0'}}>Did you get paid for Pension? <span className="he notranslate">/ האם שולמה לך פנסיה?</span> <span className="req-star">*</span></label>
                   <Chips val={f.pensionPaid} on={v=>set('pensionPaid',v)} opts={YN} hasErr={showErrs&&errs.pensionPaid}/>
                   <Err msg={E('pensionPaid')}/>
                 </div>
                 <div className="field">
-                  <label style={{fontWeight:700,color:'#1565c0'}}>Did you get paid for compensation (severance)? <span className="he">/ האם שולמו לך פיצויי פיטורין?</span> <span className="req-star">*</span></label>
+                  <label style={{fontWeight:700,color:'#1565c0'}}>Did you get paid for compensation (severance)? <span className="he notranslate">/ האם שולמו לך פיצויי פיטורין?</span> <span className="req-star">*</span></label>
                   <Chips val={f.severancePaid} on={v=>set('severancePaid',v)} opts={YN} hasErr={showErrs&&errs.severancePaid}/>
                   <Err msg={E('severancePaid')}/>
                 </div>
               </div>
               <div className="field">
-                <label style={{fontWeight:700,color:'#1565c0'}}>Did you sign an employment agreement? <span className="he">/ האם חתמת על הסכם העסקה?</span> <span className="req-star">*</span></label>
+                <label style={{fontWeight:700,color:'#1565c0'}}>Did you sign an employment agreement? <span className="he notranslate">/ האם חתמת על הסכם העסקה?</span> <span className="req-star">*</span></label>
                 <Chips val={f.agreement} on={v=>set('agreement',v)} opts={YN} hasErr={showErrs&&errs.agreement}/>
                 <Err msg={E('agreement')}/>
               </div>
@@ -761,10 +755,10 @@ export default function App() {
                 {f.agreementFileName&&<span style={{fontSize:12,color:'#388e3c',marginTop:4,display:'block'}}>{f.agreementFileName}</span>}
               </F>}
               <div className="field" style={{marginTop:12}}>
-                <label style={{fontWeight:700,color:'#1565c0'}}>Do you need to calculate the last month's salary? <span className="he">/ האם יש צורך לחשב את שכר החודש האחרון?</span> <span className="req-star">*</span></label>
+                <label style={{fontWeight:700,color:'#1565c0'}}>Do you need to calculate the last month's salary? <span className="he notranslate">/ האם יש צורך לחשב את שכר החודש האחרון?</span> <span className="req-star">*</span></label>
                 <Chips val={f.lastSalaryNeeded} on={v=>set('lastSalaryNeeded',v)} opts={YN} hasErr={showErrs&&errs.lastSalaryNeeded}/>
                 <Err msg={E('lastSalaryNeeded')}/>
-                <p className="hint">Select "Yes" if the employer did not pay the last month's salary <span className="he">יש לבחור "כן" אם המעסיק לא שילם את שכר החודש האחרון</span></p>
+                <p className="hint">Select "Yes" if the employer did not pay the last month's salary <span className="he notranslate">יש לבחור "כן" אם המעסיק לא שילם את שכר החודש האחרון</span></p>
               </div>
               {f.lastSalaryNeeded==='yes'&&<F label="Last date salary was paid" he="התאריך האחרון שבו שולם שכר" hint="The last date you received salary payment" err={E('lastSalaryDate')}>
                 <input {...inp('lastSalaryDate')} type="date" value={f.lastSalaryDate} onChange={e=>set('lastSalaryDate',e.target.value)}/>
@@ -776,16 +770,16 @@ export default function App() {
 
             {/* Navigation */}
             {sendError&&<div className="err-banner" style={{marginTop:12}}>
-              <strong>Submission failed - please try again <span className="he">/ השליחה נכשלה - נא לנסות שוב</span></strong>
+              <strong>Submission failed - please try again <span className="he notranslate">/ השליחה נכשלה - נא לנסות שוב</span></strong>
               {sendError}
             </div>}
             <div className="nav">
               <div style={{display:'flex',gap:8}}>
-                {page>1&&<button className="btn-o" onClick={()=>{setShowErrs(false);setSendError(null);setPage(p=>p-1);topRef.current?.scrollIntoView({behavior:'smooth'});}}>Previous <span className="he">/ הקודם</span></button>}
-                <button className="btn-g" onClick={saveDraft}>Save draft <span className="he">/ שמירת טיוטה</span></button>
+                {page>1&&<button className="btn-o" onClick={()=>{setShowErrs(false);setSendError(null);setPage(p=>p-1);topRef.current?.scrollIntoView({behavior:'smooth'});}}>Previous <span className="he notranslate">/ הקודם</span></button>}
+                <button className="btn-g" onClick={saveDraft}>Save draft <span className="he notranslate">/ שמירת טיוטה</span></button>
               </div>
               {page<4
-                ?<button className="btn-b" onClick={tryNext}>Next <span className="he" style={{color:'#cfe4fb'}}>/ הבא</span></button>
+                ?<button className="btn-b" onClick={tryNext}>Next <span className="he notranslate" style={{color:'#cfe4fb'}}>/ הבא</span></button>
                 :<button
                     className="btn-b"
                     disabled={sending}
@@ -806,7 +800,7 @@ export default function App() {
                         setSending(false);
                       }
                     }}>
-                    {sending ? 'Sending...' : <>Send Form <span className="he" style={{color:'#cfe4fb'}}>/ שליחת הטופס</span></>}
+                    {sending ? 'Sending...' : <>Send Form <span className="he notranslate" style={{color:'#cfe4fb'}}>/ שליחת הטופס</span></>}
                   </button>
               }
             </div>
@@ -814,15 +808,8 @@ export default function App() {
         </div>
 
         <div className="hk-ftr">
-          <p>All calculation forms for foreign workers' rights in Israel created by the Foundation are exclusively owned and protected by copyright. It is prohibited to copy, duplicate or reproduce any content from the website or the forms provided.
-            <span className="he" style={{display:'block',direction:'rtl'}}>כל טפסי החישוב לזכויות עובדים זרים בישראל שנוצרו על ידי הקרן הם בבעלות בלעדית ומוגנים בזכויות יוצרים. חל איסור להעתיק, לשכפל או לשעתק כל תוכן מהאתר או מהטפסים המצורפים.</span>
-          </p>
-          <p>All rights reserved by the Israeli Foundation for Foreign Worker Rights. (C)
-            <span className="he" style={{display:'block',direction:'rtl'}}>כל הזכויות שמורות להקרן הישראלית לזכויות העובד הזר. (C)</span>
-          </p>
-          <p>All forms for Social Benefits Calculation for foreign workers in Israel created by Hakeren are proprietary and copyrighted materials. Any unauthorized reproduction, copying, or duplication of content from this website or the forms provided is strictly prohibited. Hakeren reserves all rights. (C)
-            <span className="he" style={{display:'block',direction:'rtl'}}>כל הטפסים לחישוב זכויות סוציאליות לעובדים זרים בישראל שנוצרו על ידי הקרן הם רכוש קנייני ומוגן בזכויות יוצרים. כל שכפול, העתקה או שימוש בתוכן מהאתר או מהטפסים המצורפים ללא אישור אסור בהחלט. הקרן שומרת על כל הזכויות. (C)</span>
-          </p>
+          <p className="ftr-en">All calculation forms for foreign workers' rights in Israel are proprietary materials of Hakeren — the Israeli Foundation for Foreign Worker Rights — and are protected by copyright. Any unauthorized reproduction, copying, or duplication of content from this website or the forms provided is strictly prohibited. All rights reserved. &copy;</p>
+          <p className="ftr-he he notranslate">כל טפסי החישוב לזכויות עובדים זרים בישראל הם רכוש קנייני של הקרן הישראלית לזכויות העובד הזר ומוגנים בזכויות יוצרים. חל איסור מוחלט על העתקה, שכפול או שימוש בתוכן מהאתר או מהטפסים ללא אישור. כל הזכויות שמורות. &copy;</p>
         </div>
       </div>
 
