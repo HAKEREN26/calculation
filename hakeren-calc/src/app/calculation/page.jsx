@@ -473,14 +473,18 @@ export default function App() {
       <div className="pw">
         <div className="hk-hero">
           <h1>טופס חישוב | Calculation Form | Форма расчёта</h1>
-          <p>Welcome to the Hakeren Social Benefits Calculation Page. HAKEREN is the prominent Israeli company servicing Foreign Workers in Israel, specializing in precise Social Benefits calculations. Alongside HAKEREN, our team of skilled professionals is dedicated to delivering accurate wage calculations in strict compliance by the law for employers and employing. To obtain a precise salary calculation, kindly complete the form below.</p>
-          <p className="b">Hakeren the sole company that meticulously verifies your entitlements to ensure accurate salary assessments. Our commitment extends to confirming whether you have received the precise salary that aligns with your deserving job.</p>
+          <p>Welcome to the Hakeren Social Benefits Calculation Page. HAKEREN is the prominent Israeli company servicing Foreign Workers in Israel, specializing in precise Social Benefits calculations. Alongside HAKEREN, our team of skilled professionals is dedicated to delivering accurate wage calculations in strict compliance by the law for employers and employing. To obtain a precise salary calculation, kindly complete the form below.
+            <span className="he" style={{display:'block',marginTop:6,direction:'rtl',textAlign:'right'}}>ברוכים הבאים לעמוד חישוב הזכויות הסוציאליות של הקרן הישראלית. הקרן היא החברה הישראלית המובילה בשירות עובדים זרים בישראל, המתמחה בחישובים מדויקים של זכויות סוציאליות. לצד הקרן, צוות אנשי המקצוע המנוסים שלנו מחויב לספק חישובי שכר מדויקים, בהתאם מלא לחוק, לעובדים ולמעסיקים. לקבלת חישוב שכר מדויק, אנא מלאו את הטופס הבא.</span>
+          </p>
+          <p className="b">Hakeren the sole company that meticulously verifies your entitlements to ensure accurate salary assessments. Our commitment extends to confirming whether you have received the precise salary that aligns with your deserving job.
+            <span className="he" style={{display:'block',marginTop:6,direction:'rtl',textAlign:'right'}}>הקרן היא החברה היחידה שבודקת בקפידה את זכאותכם כדי להבטיח הערכת שכר מדויקת. המחויבות שלנו כוללת גם אימות שקיבלתם את השכר המדויק המתאים לתפקידכם.</span>
+          </p>
         </div>
 
         <div className="pay-notice">
           <strong>Important - Payment Notice <span className="he">/ הודעה חשובה - תשלום</span></strong>
-          <span>Results will be provided <span style={{color:'#e65100',fontWeight:700}}>only to those who have paid by credit card (Upay)</span>. If you wish to pay by <span style={{color:'#e65100',fontWeight:700,textDecoration:'underline'}}>cash or bank transfer</span>, please pay by bank transfer and upload the payment confirmation at the following link: <a href="https://uploadpayment.vercel.app/" target="_blank" rel="noopener noreferrer" style={{color:'#1565c0',fontWeight:700}}>https://uploadpayment.vercel.app/</a></span>
-          <span className="he" style={{display:'block',marginTop:8,direction:'rtl',textAlign:'right'}}>התוצאות יימסרו רק למי ששילם/ה בכרטיס אשראי (Upay). אם ברצונך לשלם בהעברה בנקאית, יש לשלם בהעברה בנקאית ולהעלות את אישור התשלום בקישור: <a href="https://uploadpayment.vercel.app/" target="_blank" rel="noopener noreferrer" style={{color:'#1565c0',fontWeight:700}}>https://uploadpayment.vercel.app/</a></span>
+          <span>Results will be provided <span style={{color:'#e65100',fontWeight:700}}>only to those who have paid by credit card (Upay)</span>. If you wish to pay by <span style={{color:'#e65100',fontWeight:700,textDecoration:'underline'}}>cash or bank transfer</span>, please pay by bank transfer and upload the payment confirmation at the following link: <a href="https://payment.hakeren.org.il" target="_blank" rel="noopener noreferrer" style={{color:'#1565c0',fontWeight:700}}>payment.hakeren.org.il</a></span>
+          <span className="he" style={{display:'block',marginTop:8,direction:'rtl',textAlign:'right'}}>התוצאות יימסרו רק למי ששילם/ה בכרטיס אשראי (Upay). אם ברצונך לשלם בהעברה בנקאית, יש לשלם בהעברה בנקאית ולהעלות את אישור התשלום בקישור: <a href="https://payment.hakeren.org.il" target="_blank" rel="noopener noreferrer" style={{color:'#1565c0',fontWeight:700}}>payment.hakeren.org.il</a></span>
           <span style={{display:'block',marginTop:8,fontWeight:600}}>Phone: 050-5750054 | Phone: 072-2243333</span>
         </div>
 
