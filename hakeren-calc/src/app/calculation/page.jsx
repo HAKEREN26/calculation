@@ -372,24 +372,19 @@ export default function App() {
     return () => clearInterval(id);
   }, [f]);
 
-  // Google Translate, shown as Google's own native widget so language switching happens
-  // via a genuine, trusted user click rather than a synthetic JS event.
-  // No includedLanguages restriction: Google silently drops some configured languages
-  // from a restricted list, so offering its full catalog gives workers the widest choice.
-  // No layout option: the default renders a native in-page <select> (goog-te-combo)
-  // instead of the iframe-based flyout menu, which iOS Safari fails to open.
+  // Google Translate widget — exact same minimal integration as the main hakeren.org.il
+  // site, which renders the native in-page <select> (goog-te-combo) with Google's full
+  // language catalog. Any extra option (layout / autoDisplay / includedLanguages / hl=)
+  // makes Google render the iframe-flyout gadget instead, which iOS Safari fails to open
+  // and which silently drops several languages.
   useEffect(() => {
     if (window.googleTranslateElementInit) return;
     document.documentElement.lang = 'en';
     window.googleTranslateElementInit = function() {
-      new window.google.translate.TranslateElement({
-        pageLanguage: 'en',
-        layout: window.google.translate.TranslateElement.InlineLayout.VERTICAL,
-        autoDisplay: false
-      }, 'google_translate_element');
+      new window.google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
     };
     const s = document.createElement('script');
-    s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit&hl=en';
+    s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
     s.async = true;
     document.head.appendChild(s);
   }, []);
