@@ -372,17 +372,19 @@ export default function App() {
     return () => clearInterval(id);
   }, [f]);
 
-  // Google Translate covers everything except Hebrew (permanently translated in-page above)
-  // and English (the source language). Shown as Google's own native widget so language
-  // switching happens via a genuine, trusted user click rather than a synthetic JS event.
+  // Google Translate, shown as Google's own native widget so language switching happens
+  // via a genuine, trusted user click rather than a synthetic JS event.
+  // No includedLanguages restriction: Google silently drops some configured languages
+  // from a restricted list, so offering its full catalog gives workers the widest choice.
+  // No layout option: the default renders a native in-page <select> (goog-te-combo)
+  // instead of the iframe-based flyout menu, which iOS Safari fails to open.
   useEffect(() => {
     if (window.googleTranslateElementInit) return;
     document.documentElement.lang = 'en';
     window.googleTranslateElementInit = function() {
       new window.google.translate.TranslateElement({
         pageLanguage: 'en',
-        includedLanguages: 'tl,ro,uk,ru,zh-CN,si,hi,ar,fil,th,id,vi',
-        layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
+        layout: window.google.translate.TranslateElement.InlineLayout.VERTICAL,
         autoDisplay: false
       }, 'google_translate_element');
     };
