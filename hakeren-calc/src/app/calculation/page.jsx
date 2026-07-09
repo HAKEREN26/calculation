@@ -451,9 +451,15 @@ export default function App() {
         <p style={{fontSize:14,color:'#444',lineHeight:1.7}}>Your calculation is being processed.<br/>Our team will contact you shortly.<br/><span className="he" style={{display:'block',direction:'rtl',textAlign:'center'}}>החישוב שלך מעובד כעת. הצוות שלנו יצור איתך קשר בקרוב.</span></p>
       </div>
       <div className="hk-ftr">
-        <p>All calculation forms for foreign workers' rights in Israel created by the Foundation are exclusively owned and protected by copyright.</p>
-        <p>All rights reserved by the Israeli Foundation for Foreign Worker Rights. (C)</p>
-        <p>All forms for Social Benefits Calculation for foreign workers in Israel created by Hakeren are proprietary and copyrighted materials. Any unauthorized reproduction, copying, or duplication of content from this website or the forms provided is strictly prohibited. Hakeren reserves all rights. (C)</p>
+        <p>All calculation forms for foreign workers' rights in Israel created by the Foundation are exclusively owned and protected by copyright.
+          <span className="he" style={{display:'block',direction:'rtl'}}>כל טפסי החישוב לזכויות עובדים זרים בישראל שנוצרו על ידי הקרן הם בבעלות בלעדית ומוגנים בזכויות יוצרים.</span>
+        </p>
+        <p>All rights reserved by the Israeli Foundation for Foreign Worker Rights. (C)
+          <span className="he" style={{display:'block',direction:'rtl'}}>כל הזכויות שמורות להקרן הישראלית לזכויות העובד הזר. (C)</span>
+        </p>
+        <p>All forms for Social Benefits Calculation for foreign workers in Israel created by Hakeren are proprietary and copyrighted materials. Any unauthorized reproduction, copying, or duplication of content from this website or the forms provided is strictly prohibited. Hakeren reserves all rights. (C)
+          <span className="he" style={{display:'block',direction:'rtl'}}>כל הטפסים לחישוב זכויות סוציאליות לעובדים זרים בישראל שנוצרו על ידי הקרן הם רכוש קנייני ומוגן בזכויות יוצרים. כל שכפול, העתקה או שימוש בתוכן מהאתר או מהטפסים המצורפים ללא אישור אסור בהחלט. הקרן שומרת על כל הזכויות. (C)</span>
+        </p>
       </div>
     </>
   );
@@ -811,9 +817,15 @@ export default function App() {
         </div>
 
         <div className="hk-ftr">
-          <p>All calculation forms for foreign workers' rights in Israel created by the Foundation are exclusively owned and protected by copyright. It is prohibited to copy, duplicate or reproduce any content from the website or the forms provided.</p>
-          <p>All rights reserved by the Israeli Foundation for Foreign Worker Rights. (C)</p>
-          <p>All forms for Social Benefits Calculation for foreign workers in Israel created by Hakeren are proprietary and copyrighted materials. Any unauthorized reproduction, copying, or duplication of content from this website or the forms provided is strictly prohibited. Hakeren reserves all rights. (C)</p>
+          <p>All calculation forms for foreign workers' rights in Israel created by the Foundation are exclusively owned and protected by copyright. It is prohibited to copy, duplicate or reproduce any content from the website or the forms provided.
+            <span className="he" style={{display:'block',direction:'rtl'}}>כל טפסי החישוב לזכויות עובדים זרים בישראל שנוצרו על ידי הקרן הם בבעלות בלעדית ומוגנים בזכויות יוצרים. חל איסור להעתיק, לשכפל או לשעתק כל תוכן מהאתר או מהטפסים המצורפים.</span>
+          </p>
+          <p>All rights reserved by the Israeli Foundation for Foreign Worker Rights. (C)
+            <span className="he" style={{display:'block',direction:'rtl'}}>כל הזכויות שמורות להקרן הישראלית לזכויות העובד הזר. (C)</span>
+          </p>
+          <p>All forms for Social Benefits Calculation for foreign workers in Israel created by Hakeren are proprietary and copyrighted materials. Any unauthorized reproduction, copying, or duplication of content from this website or the forms provided is strictly prohibited. Hakeren reserves all rights. (C)
+            <span className="he" style={{display:'block',direction:'rtl'}}>כל הטפסים לחישוב זכויות סוציאליות לעובדים זרים בישראל שנוצרו על ידי הקרן הם רכוש קנייני ומוגן בזכויות יוצרים. כל שכפול, העתקה או שימוש בתוכן מהאתר או מהטפסים המצורפים ללא אישור אסור בהחלט. הקרן שומרת על כל הזכויות. (C)</span>
+          </p>
         </div>
       </div>
 
