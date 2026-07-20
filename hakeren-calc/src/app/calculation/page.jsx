@@ -10,7 +10,14 @@ const YN = [{v:'yes',l:'Yes',he:'כן'},{v:'no',l:'No',he:'לא'}];
 const INITIAL = {
   name:'',phone:'',email:'',passport:'',nationality:'',
   passportFile:null,passportFileName:'',
-  empSource:[],pikadon:'',address:'',
+  empSource:[],
+  // Fields no longer shown in the form but kept in the payload with fixed
+  // defaults so the Make.com calculation scenario mapping doesn't break:
+  //   pikadon 'no'  -> no deposit calculation
+  //   existingPension '' -> pension counted from month 7 (standard case)
+  //   pensionPaid/severancePaid 'no' -> assumed not yet paid (worker owed)
+  //   agreement 'no' -> no signed agreement provided
+  pikadon:'no',address:'',
   empFirstName:'',empFamilyName:'',empAddress:'',empCell:'',empHome:'',
   empContact:[],empContactName:'',empContactPhone:'',
   start:'',end:'',termReason:'',resignReason:[],noticeDate:'',
@@ -23,9 +30,9 @@ const INITIAL = {
   annualLeaveDate:'',
   holidaysDate:'',
   holidayType:'jewish',holidayDaysWorked:'',
-  existingPension:'',pensionPaid:'',severancePaid:'',
+  existingPension:'',pensionPaid:'no',severancePaid:'no',
   lastSalaryNeeded:'',lastSalaryDate:'',
-  agreement:'',
+  agreement:'no',
   agreementFile:null,agreementFileName:'',
   comments:'',
 };
@@ -201,24 +208,10 @@ function validatePage(page, f) {
     if (!f.passport.trim())          errs.passport = 'Passport number is required';
     else if (!isEnDigitsText(f.passport)) errs.passport = 'English letters and/or numbers only';
     if (!f.nationality)             errs.nationality = 'Nationality is required';
-    if (!f.address.trim())          errs.address = 'Address is required';
-    else if (!isHeEnText(f.address)) errs.address = 'Hebrew or English letters only';
     if (f.empSource.length === 0)   errs.empSource = 'Please select employer type';
-    if (!f.pikadon)                 errs.pikadon = 'Please answer the PIKADON question';
   }
 
   if (page === 2) {
-    if (!f.empFirstName.trim())     errs.empFirstName = 'First name is required';
-    else if (!isHeEnText(f.empFirstName)) errs.empFirstName = 'Hebrew or English letters only';
-    if (!f.empFamilyName.trim())    errs.empFamilyName = 'Family name is required';
-    else if (!isHeEnText(f.empFamilyName)) errs.empFamilyName = 'Hebrew or English letters only';
-    if (!f.empAddress.trim())       errs.empAddress = 'Employer address is required';
-    else if (!isHeEnText(f.empAddress)) errs.empAddress = 'Hebrew or English letters only';
-    if (f.empContactName.trim() && !isHeEnText(f.empContactName)) errs.empContactName = 'Hebrew or English letters only';
-    if (f.empContactName.trim() && !f.empContactPhone.trim()) errs.empContactPhone = 'Phone required when name is given';
-  }
-
-  if (page === 3) {
     if (!f.start)                   errs.start = 'Start date is required';
     else if (f.start) { var sy = new Date(f.start).getFullYear(); if (sy < 1950 || sy > 2100) errs.start = 'Year must be between 1950-2100'; }
     if (!f.end)                     errs.end = 'End date is required';
@@ -249,16 +242,12 @@ function validatePage(page, f) {
     // recuperationDate is optional -leave empty if never received
   }
 
-  if (page === 4) {
+  if (page === 3) {
     // annualLeaveDate and holidaysDate are optional -leave empty if never received
     if (!f.holidayType)             errs.holidayType = 'Please select your holiday type';
     if (f.holidayDaysWorked === '' || f.holidayDaysWorked === undefined) errs.holidayDaysWorked = 'Please enter number of holiday days (0-9)';
-    if (!f.existingPension)         errs.existingPension = 'Please answer this question';
-    if (!f.pensionPaid)             errs.pensionPaid = 'Please answer this question';
-    if (!f.severancePaid)           errs.severancePaid = 'Please answer this question';
     if (!f.lastSalaryNeeded)         errs.lastSalaryNeeded = 'Please answer this question';
     if (f.lastSalaryNeeded === 'yes' && !f.lastSalaryDate) errs.lastSalaryDate = 'Please enter the last salary date';
-    if (!f.agreement)               errs.agreement = 'Please answer this question';
     if (f.comments.trim() && !isHeEnText(f.comments)) errs.comments = 'Hebrew or English letters only';
   }
 
@@ -435,9 +424,9 @@ export default function App() {
     };
   };
 
-  const pageTitle = ['Employee Information','Employer\'s Information','Employment Information','Final Details'][page-1];
-  const pageTitleHe = ['פרטי העובד/ת','פרטי המעסיק','פרטי העסקה','פרטים נוספים'][page-1];
-  const pct = (page/4)*100;
+  const pageTitle = ['Employee Information','Employment Information','Final Details'][page-1];
+  const pageTitleHe = ['פרטי העובד/ת','פרטי העסקה','פרטים נוספים'][page-1];
+  const pct = (page/3)*100;
 
   if (submitted) return (
     <>
@@ -499,7 +488,7 @@ export default function App() {
 
         <div className="fc">
           <div className="fc-hdr">
-            <span>Page {page} of 4 - {pageTitle} <span className="he notranslate" style={{color:'#cfe4fb'}}>/ עמוד {page} מתוך 4 - {pageTitleHe}</span></span>
+            <span>Page {page} of 3 - {pageTitle} <span className="he notranslate" style={{color:'#cfe4fb'}}>/ עמוד {page} מתוך 3 - {pageTitleHe}</span></span>
             <button onClick={saveDraft} style={{padding:'4px 12px',fontSize:11,border:'1px solid rgba(255,255,255,0.5)',borderRadius:3,background:'rgba(255,255,255,0.15)',color:'#fff',cursor:'pointer',fontFamily:'inherit'}}>Save draft <span className="he notranslate">/ שמירת טיוטה</span></button>
           </div>
           <div className="fc-body">
@@ -541,54 +530,10 @@ export default function App() {
                 <ChkGrp opts={[{v:'private',l:'Private Employer',he:'מעסיק פרטי'},{v:'nursing',l:'Nursing Company',he:'חברת סיעוד'}]} vals={f.empSource} on={v=>set('empSource',v)}/>
                 <Err msg={E('empSource')}/>
               </div>
-              <div className="field">
-                <label>Would you like a calculation for PIKADON (deposit amount)? <span className="he notranslate">/ האם תרצה/י חישוב לפיקדון?</span> <span className="req-star">*</span></label>
-                <Chips val={f.pikadon} on={v=>set('pikadon',v)} opts={YN} hasErr={showErrs&&errs.pikadon}/>
-                <Err msg={E('pikadon')}/>
-              </div>
-              <F label="Full Address: Street, Number and City" he="כתובת מלאה: רחוב, מספר ועיר" req hint="Hebrew or English letters only / עברית או אנגלית בלבד" err={E('address')}>
-                <input {...inp('address')} value={f.address} onChange={e=>set('address',e.target.value)} placeholder="Street, Number and City"/>
-              </F>
             </>}
 
-            {/* ΓòÉΓòÉΓòÉ PAGE 2 ΓòÉΓòÉΓòÉ */}
+            {/* ΓòÉΓòÉΓòÉ PAGE 2 — EMPLOYMENT INFORMATION ΓòÉΓòÉΓòÉ */}
             {page===2&&<>
-              <p className="st">Employer's Information: <span className="he notranslate">/ פרטי המעסיק</span></p>
-              <div className="g2">
-                <F label="First Name" he="שם פרטי" req hint="Hebrew or English only" err={E('empFirstName')}>
-                  <input {...inp('empFirstName')} value={f.empFirstName} onChange={e=>set('empFirstName',e.target.value)}/>
-                </F>
-                <F label="Family Name" he="שם משפחה" req hint="Hebrew or English only" err={E('empFamilyName')}>
-                  <input {...inp('empFamilyName')} value={f.empFamilyName} onChange={e=>set('empFamilyName',e.target.value)}/>
-                </F>
-              </div>
-              <F label="Address" he="כתובת" req hint="Hebrew or English letters only / עברית או אנגלית בלבד" err={E('empAddress')}>
-                <input {...inp('empAddress')} value={f.empAddress} onChange={e=>set('empAddress',e.target.value)}/>
-              </F>
-              <div className="g2">
-                <F label="Cell phone number" he="מספר טלפון נייד">
-                  <input {...inp('empCell')} type="tel" value={f.empCell} onChange={e=>set('empCell',e.target.value)} placeholder="number"/>
-                </F>
-                <F label="Home phone number" he="מספר טלפון בבית">
-                  <input {...inp('empHome')} type="tel" value={f.empHome} onChange={e=>set('empHome',e.target.value)} placeholder="number"/>
-                </F>
-              </div>
-              <div className="field">
-                <label style={{fontSize:13,fontWeight:700,color:'#1565c0'}}>Employer's Contact Person <span className="he notranslate">/ איש קשר של המעסיק</span></label>
-                <ChkGrp opts={contactOpts} vals={f.empContact} on={v=>set('empContact',v)}/>
-              </div>
-              <div className="g2">
-                <F label="Contact Full Name" he="שם מלא של איש הקשר" hint="Hebrew or English only" err={E('empContactName')}>
-                  <input {...inp('empContactName')} value={f.empContactName} onChange={e=>set('empContactName',e.target.value)}/>
-                </F>
-                <F label="Contact Phone" he="טלפון של איש הקשר" err={E('empContactPhone')}>
-                  <input {...inp('empContactPhone')} type="tel" value={f.empContactPhone} onChange={e=>set('empContactPhone',e.target.value)} placeholder="number"/>
-                </F>
-              </div>
-            </>}
-
-            {/* ΓòÉΓòÉΓòÉ PAGE 3 ΓòÉΓòÉΓòÉ */}
-            {page===3&&<>
               <p className="st">Employment Information: <span className="he notranslate">/ פרטי העסקה</span></p>
               <div className="g2">
                 <F label="Employment Start Date" he="תאריך תחילת העסקה" req err={E('start')}>
@@ -703,8 +648,9 @@ export default function App() {
               })()}
             </>}
 
-            {/* ΓòÉΓòÉΓòÉ PAGE 4 ΓòÉΓòÉΓòÉ */}
-            {page===4&&<>
+            {/* ΓòÉΓòÉΓòÉ PAGE 3 — FINAL DETAILS ΓòÉΓòÉΓòÉ */}
+            {page===3&&<>
+              <p className="st">Final Details: <span className="he notranslate">/ פרטים נוספים</span></p>
               <F label="When was the last date you received annual leave (vacation) payment?" he="מתי התקבל לאחרונה תשלום חופשה שנתית?" hint="Leave empty if you never received it" err={E('annualLeaveDate')}>
                 <input {...inp('annualLeaveDate')} type="date" value={f.annualLeaveDate} onChange={e=>set('annualLeaveDate',e.target.value)}/>
               </F>
@@ -720,40 +666,6 @@ export default function App() {
               <F label="How many holiday days were you paid from the beginning of the civil year until today?" he="כמה ימי חג שולמו מתחילת השנה האזרחית ועד היום?" req err={E('holidayDaysWorked')} hint="Maximum 9 days per year">
                 <input {...inp('holidayDaysWorked')} type="number" min="0" max="9" value={f.holidayDaysWorked} onChange={e=>set('holidayDaysWorked',e.target.value)} placeholder="0-9"/>
               </F>
-              <div className="field" style={{marginTop:12}}>
-                <label style={{fontWeight:700,color:'#1565c0'}}>Did you have an existing pension arrangement before starting this job? <span className="he notranslate">/ האם היה לך הסדר פנסיוני קיים לפני תחילת העבודה?</span> <span className="req-star">*</span></label>
-                <Chips val={f.existingPension} on={v=>set('existingPension',v)} opts={YN} hasErr={showErrs&&errs.existingPension}/>
-                <Err msg={E('existingPension')}/>
-                <p className="hint">If yes, pension is calculated from day 1. If no, pension starts from month 7. <span className="he notranslate">אם כן, הפנסיה מחושבת מהיום הראשון. אם לא, הפנסיה מתחילה מחודש 7.</span></p>
-              </div>
-              <div className="g2" style={{marginTop:12}}>
-                <div className="field">
-                  <label style={{fontWeight:700,color:'#1565c0'}}>Did you get paid for Pension? <span className="he notranslate">/ האם שולמה לך פנסיה?</span> <span className="req-star">*</span></label>
-                  <Chips val={f.pensionPaid} on={v=>set('pensionPaid',v)} opts={YN} hasErr={showErrs&&errs.pensionPaid}/>
-                  <Err msg={E('pensionPaid')}/>
-                </div>
-                <div className="field">
-                  <label style={{fontWeight:700,color:'#1565c0'}}>Did you get paid for compensation (severance)? <span className="he notranslate">/ האם שולמו לך פיצויי פיטורין?</span> <span className="req-star">*</span></label>
-                  <Chips val={f.severancePaid} on={v=>set('severancePaid',v)} opts={YN} hasErr={showErrs&&errs.severancePaid}/>
-                  <Err msg={E('severancePaid')}/>
-                </div>
-              </div>
-              <div className="field">
-                <label style={{fontWeight:700,color:'#1565c0'}}>Did you sign an employment agreement? <span className="he notranslate">/ האם חתמת על הסכם העסקה?</span> <span className="req-star">*</span></label>
-                <Chips val={f.agreement} on={v=>set('agreement',v)} opts={YN} hasErr={showErrs&&errs.agreement}/>
-                <Err msg={E('agreement')}/>
-              </div>
-              {f.agreement==='yes'&&<F label="Upload your employment agreement:" he="העלאת הסכם ההעסקה:">
-                <input type="file" accept=".pdf,.doc,.docx,image/*" style={{fontSize:13}} onChange={e=>{
-                  const file=e.target.files[0];
-                  if(!file)return;
-                  if(file.size>5*1024*1024){alert('File too large (max 5MB)');e.target.value='';return;}
-                  const reader=new FileReader();
-                  reader.onload=()=>{setF(p=>({...p,agreementFile:reader.result,agreementFileName:file.name}));};
-                  reader.readAsDataURL(file);
-                }}/>
-                {f.agreementFileName&&<span style={{fontSize:12,color:'#388e3c',marginTop:4,display:'block'}}>{f.agreementFileName}</span>}
-              </F>}
               <div className="field" style={{marginTop:12}}>
                 <label style={{fontWeight:700,color:'#1565c0'}}>Do you need to calculate the last month's salary? <span className="he notranslate">/ האם יש צורך לחשב את שכר החודש האחרון?</span> <span className="req-star">*</span></label>
                 <Chips val={f.lastSalaryNeeded} on={v=>set('lastSalaryNeeded',v)} opts={YN} hasErr={showErrs&&errs.lastSalaryNeeded}/>
@@ -778,7 +690,7 @@ export default function App() {
                 {page>1&&<button className="btn-o" onClick={()=>{setShowErrs(false);setSendError(null);setPage(p=>p-1);topRef.current?.scrollIntoView({behavior:'smooth'});}}>Previous <span className="he notranslate">/ הקודם</span></button>}
                 <button className="btn-g" onClick={saveDraft}>Save draft <span className="he notranslate">/ שמירת טיוטה</span></button>
               </div>
-              {page<4
+              {page<3
                 ?<button className="btn-b" onClick={tryNext}>Next <span className="he notranslate" style={{color:'#cfe4fb'}}>/ הבא</span></button>
                 :<button
                     className="btn-b"
