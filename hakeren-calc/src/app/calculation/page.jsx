@@ -40,6 +40,11 @@ const INITIAL = {
 const WEBHOOK_URL = "https://hook.eu1.make.com/0oubj2kli3e49csk3rrxnobvsj52hxuj";
 
 async function submitToMake(f) {
+  // Advance-notice days are no longer asked in the form — derive them from the notice
+  // date and the employment end date so the calculation engine still receives the value.
+  const computedNoticeDays = (f.noticeDate && f.end)
+    ? Math.max(0, Math.round((new Date(f.end) - new Date(f.noticeDate)) / 86400000))
+    : (Number(f.noticeDaysGiven) || 0);
   const payload = {
     // Flat fields for GAS calculation engine
     name: f.name,
@@ -63,7 +68,7 @@ async function submitToMake(f) {
     termReason: f.termReason,
     resignReason: Array.isArray(f.resignReason) ? f.resignReason[0] || '' : f.resignReason,
     noticeDate: f.noticeDate,
-    noticeDaysGiven: Number(f.noticeDaysGiven) || 0,
+    noticeDaysGiven: computedNoticeDays,
     shiva: 0,
     salary: Number(f.salary),
     salaryIncreases: f.salaryIncreases.filter(si => si.newSal && si.date).map(si => ({newSal: Number(si.newSal), date: si.date})),
@@ -126,7 +131,7 @@ async function submitToMake(f) {
       termination_reason: f.termReason,
       resignation_reason: f.resignReason,
       notice_date: f.noticeDate,
-      notice_days_given: Number(f.noticeDaysGiven) || 0,
+      notice_days_given: computedNoticeDays,
       shiva_days: 0,
       employment_type: f.liveType,
       works_weekends: f.worksWeekends,
@@ -208,7 +213,6 @@ function validatePage(page, f) {
     if (!f.passport.trim())          errs.passport = 'Passport number is required';
     else if (!isEnDigitsText(f.passport)) errs.passport = 'English letters and/or numbers only';
     if (!f.nationality)             errs.nationality = 'Nationality is required';
-    if (f.empSource.length === 0)   errs.empSource = 'Please select employer type';
   }
 
   if (page === 2) {
@@ -417,7 +421,7 @@ export default function App() {
   const rmV   = i => set('vacations', f.vacations.filter((_,x)=>x!==i));
 
   const nats = ['Filipino','Romanian','Moldovan','Ukrainian','Russian','Sri Lankan','Chinese','Indian','Thai','Other'];
-  const termOpts = [{v:'died',l:'Employer Died',he:'המעסיק נפטר'},{v:'fired',l:'Got Fired',he:'פוטר'},{v:'resign',l:'Resigned',he:'התפטר'}];
+  const termOpts = [{v:'died',l:'Employer Died',he:'המעסיק נפטר'},{v:'fired',l:'Got Fired',he:'פוטר'},{v:'nursinghome',l:'Moved to a nursing home',he:'עבר לבית אבות'},{v:'resign',l:'Resigned',he:'התפטר'}];
   const resignOpts = [{v:'nopay',l:"They didn't pay me",he:'לא שילמו לי'},{v:'sick',l:"I'm sick (medical)",he:'אני חולה (רפואי)'},{v:'harassment',l:'Sexual harassment',he:'הטרדה מינית'},{v:'other',l:'Other reason',he:'סיבה אחרת'}];
   const contactOpts = [{v:'son',l:'Son',he:'בן'},{v:'daughter',l:'Daughter',he:'בת'},{v:'niece',l:'Niece/Nephew',he:'אחיין/ית'},{v:'wife',l:'Wife',he:'אישה'},{v:'husband',l:'Husband',he:'בעל'},{v:'social',l:'Social Worker',he:'עובד/ת סוציאלי/ת'}];
   const holidayTypeOpts = [{v:'jewish',l:'Jewish',he:'יהודי'},{v:'christian_catholic',l:'Christian Catholic',he:'נוצרי קתולי'},{v:'christian_orthodox',l:'Christian Orthodox',he:'נוצרי אורתודוקסי'},{v:'thailand',l:'Thailand',he:'תאילנד'},{v:'india',l:'India',he:'הודו'},{v:'srilanka',l:'Sri Lanka',he:'סרי לנקה'},{v:'romania',l:'Romania',he:'רומניה'},{v:'ukraine',l:'Ukraine',he:'אוקראינה'}];
@@ -511,19 +515,8 @@ export default function App() {
               <F label="Email" he="אימייל" err={E('email')}>
                 <input {...inp('email')} type="email" maxLength={EMAIL_MAX_LEN} value={f.email} onChange={e=>set('email',e.target.value)} onBlur={()=>touch('email')} placeholder="worker@example.com"/>
               </F>
-              <F label="Passport Number" he="מספר דרכון" req hint="English letters and/or numbers only / אותיות אנגליות ו/או מספרים בלבד" err={E('passport')}>
-                <input {...inp('passport')} value={f.passport} onChange={e=>set('passport',e.target.value)} placeholder="Passport number"/>
-              </F>
-              <F label="Upload Your Passport Photo" he="העלאת צילום דרכון">
-                <input type="file" accept="image/*,.pdf" style={{fontSize:13}} onChange={e=>{
-                  const file=e.target.files[0];
-                  if(!file)return;
-                  if(file.size>5*1024*1024){alert('File too large (max 5MB)');e.target.value='';return;}
-                  const reader=new FileReader();
-                  reader.onload=()=>{setF(p=>({...p,passportFile:reader.result,passportFileName:file.name}));};
-                  reader.readAsDataURL(file);
-                }}/>
-                {f.passportFileName&&<span style={{fontSize:12,color:'#388e3c',marginTop:4,display:'block'}}>{f.passportFileName}</span>}
+              <F label="Passport / ID Number" he="מספר דרכון / ת.ז." req hint="English letters and/or numbers only / אותיות אנגליות ו/או מספרים בלבד" err={E('passport')}>
+                <input {...inp('passport')} value={f.passport} onChange={e=>set('passport',e.target.value)} placeholder="Passport or ID number"/>
               </F>
               <F label="Choose Your Nationality" he="בחירת אזרחות" req err={E('nationality')}>
                 <select {...inp('nationality')} value={f.nationality} onChange={e=>set('nationality',e.target.value)}>
@@ -531,11 +524,6 @@ export default function App() {
                   {nats.map(n=><option key={n} value={n}>{n}</option>)}
                 </select>
               </F>
-              <div className="field">
-                <label>Are you receiving salary through a nursing company or private employer? <span className="he notranslate">/ האם את/ה מקבל/ת שכר דרך חברת סיעוד או מעסיק פרטי?</span> <span className="req-star">*</span></label>
-                <ChkGrp opts={[{v:'private',l:'Private Employer',he:'מעסיק פרטי'},{v:'nursing',l:'Nursing Company',he:'חברת סיעוד'}]} vals={f.empSource} on={v=>set('empSource',v)}/>
-                <Err msg={E('empSource')}/>
-              </div>
             </>}
 
             {/* ΓòÉΓòÉΓòÉ PAGE 2 — EMPLOYMENT INFORMATION ΓòÉΓòÉΓòÉ */}
@@ -559,18 +547,8 @@ export default function App() {
                 <ChkGrp opts={resignOpts} vals={f.resignReason} on={v=>set('resignReason',v)}/>
                 <Err msg={E('resignReason')}/>
               </div>}
-              <F label="When did you provide or receive advance notice?" he="מתי ניתנה או התקבלה הודעה מוקדמת?" req err={E('noticeDate')}>
-                <input {...inp('noticeDate')} type="date" value={f.noticeDate} onChange={e=>{
-                  const nd = e.target.value;
-                  set('noticeDate', nd);
-                  if (nd && f.end) {
-                    const days = Math.round((new Date(f.end) - new Date(nd)) / 86400000);
-                    if (days >= 0) set('noticeDaysGiven', String(days));
-                  }
-                }}/>
-              </F>
-              <F label="How many advance notice days were given?" he="כמה ימי הודעה מוקדמת ניתנו?" hint={f.noticeDate && f.end ? 'Auto-calculated — you can edit manually / חושב אוטומטית — ניתן לשנות ידנית' : 'Enter 0 if no advance notice was given'}>
-                <input {...inp('noticeDaysGiven')} type="number" min="0" value={f.noticeDaysGiven} onChange={e=>set('noticeDaysGiven',e.target.value)} placeholder="0"/>
+              <F label="When did you provide or receive advance notice?" he="מתי ניתנה או התקבלה הודעה מוקדמת?" req hint="Advance-notice days are calculated automatically from this date / ימי ההודעה המוקדמת מחושבים אוטומטית מתאריך זה" err={E('noticeDate')}>
+                <input {...inp('noticeDate')} type="date" value={f.noticeDate} onChange={e=>set('noticeDate',e.target.value)}/>
               </F>
               <p style={{fontSize:14,fontWeight:700,color:'#1565c0',margin:'14px 0 4px'}}>Monthly Salary <span className="he notranslate">/ שכר חודשי</span></p>
               <p style={{fontSize:12,color:'#555',marginBottom:10,lineHeight:1.5,background:'#f5f5f5',padding:'8px 12px',borderRadius:8,border:'1px solid #e0e0e0'}}>
@@ -611,7 +589,7 @@ export default function App() {
 
               <div className="field">
                 <label style={{fontWeight:700,color:'#1565c0'}}>Do you live at the workplace? <span className="he notranslate">/ האם את/ה גר/ה במקום העבודה?</span> <span className="req-star">*</span></label>
-                <Chips val={f.liveType} on={v=>set('liveType',v)} opts={[{v:'livein',l:'Live in',he:'מגורים במקום'},{v:'liveout_clean',l:'Live out - Cleaning',he:'מגורים בחוץ - ניקיון'},{v:'construction',l:'Construction',he:'בנייה'}]} hasErr={showErrs&&errs.liveType}/>
+                <Chips val={f.liveType} on={v=>set('liveType',v)} opts={[{v:'livein',l:'Live in',he:'מגורים במקום'},{v:'no',l:'No',he:'לא'}]} hasErr={showErrs&&errs.liveType}/>
                 <Err msg={E('liveType')}/>
               </div>
               <div className="field">
@@ -657,6 +635,10 @@ export default function App() {
             {/* ΓòÉΓòÉΓòÉ PAGE 3 — FINAL DETAILS ΓòÉΓòÉΓòÉ */}
             {page===3&&<>
               <p className="st">Final Details: <span className="he notranslate">/ פרטים נוספים</span></p>
+              <div className="field">
+                <label>Are you receiving salary through a nursing company or private employer? <span className="he notranslate">/ האם את/ה מקבל/ת שכר דרך חברת סיעוד או מעסיק פרטי?</span></label>
+                <ChkGrp opts={[{v:'private',l:'Private Employer',he:'מעסיק פרטי'},{v:'nursing',l:'Nursing Company',he:'חברת סיעוד'}]} vals={f.empSource} on={v=>set('empSource',v)}/>
+              </div>
               <F label="When was the last date you received annual leave (vacation) payment?" he="מתי התקבל לאחרונה תשלום חופשה שנתית?" hint="Leave empty if you never received it" err={E('annualLeaveDate')}>
                 <input {...inp('annualLeaveDate')} type="date" value={f.annualLeaveDate} onChange={e=>set('annualLeaveDate',e.target.value)}/>
               </F>
