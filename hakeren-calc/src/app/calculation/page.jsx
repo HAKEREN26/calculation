@@ -267,6 +267,11 @@ const css = `
   .hk-hero h1{font-size:20px;font-weight:700;color:#1565c0;margin-bottom:12px;text-align:center}
   .hk-hero p{font-size:13px;color:#444;line-height:1.7;margin-bottom:8px}
   .hk-hero p.b{font-weight:700;color:#1565c0}
+  .hk-hero .intro-he{direction:rtl;text-align:right;margin-bottom:14px}
+  .hk-hero .intro-en{direction:ltr;text-align:left;padding-top:12px;border-top:1px solid #e0e8f5}
+  .hk-hero .intro-he p,.hk-hero .intro-en p{margin-bottom:6px}
+  .hk-hero .intro-he a,.hk-hero .intro-en a{color:#1565c0;font-weight:700}
+  .hk-hdr a{display:inline-block;line-height:0}
   .pay-notice{background:#fff8e1;border:1px solid #ffd54f;border-left:4px solid #f9a825;border-radius:6px;padding:12px 16px;margin-bottom:18px;font-size:13px;line-height:1.6;color:#5d4037}
   .pay-notice strong:first-child{display:block;margin-bottom:4px}
   .pay-notice strong{color:#e65100}
@@ -431,7 +436,7 @@ export default function App() {
   if (submitted) return (
     <>
       <style dangerouslySetInnerHTML={{__html: css}} />
-      <div className="hk-hdr"><img src={LOGO_B64} alt="Hakeren"/></div>
+      <div className="hk-hdr"><a href="https://hakeren.org.il/" target="_blank" rel="noopener noreferrer"><img src={LOGO_B64} alt="Hakeren"/></a></div>
       <div className="pw" style={{textAlign:'center',paddingTop:60}}>
         <div style={{fontSize:56,marginBottom:20,color:'#4caf50'}}>V</div>
         <h2 style={{fontSize:22,color:'#1565c0',marginBottom:12}}>Form Submitted Successfully <span className="he notranslate">/ הטופס נשלח בהצלחה</span></h2>
@@ -448,7 +453,7 @@ export default function App() {
     <>
       <style dangerouslySetInnerHTML={{__html: css}} />
       <div className="hk-hdr" ref={topRef}>
-        <img src={LOGO_B64} alt="Hakeren"/>
+        <a href="https://hakeren.org.il/" target="_blank" rel="noopener noreferrer"><img src={LOGO_B64} alt="Hakeren"/></a>
         <div className="hk-hdr-side">
           <div id="google_translate_element" className="notranslate"/>
           <span style={{fontSize:11,color:'#1565c0',fontWeight:600}}>Worker Rights Calculation <span className="he notranslate">/ חישוב זכויות עובד</span></span>
@@ -458,20 +463,21 @@ export default function App() {
 
       <div className="pw">
         <div className="hk-hero">
-          <h1>טופס חישוב | Calculation Form | Форма расчёта</h1>
-          <p>Welcome to the Hakeren Social Benefits Calculation Page. HAKEREN is the prominent Israeli company servicing Foreign Workers in Israel, specializing in precise Social Benefits calculations. Alongside HAKEREN, our team of skilled professionals is dedicated to delivering accurate wage calculations in strict compliance by the law for employers and employing. To obtain a precise salary calculation, kindly complete the form below.
-            <span className="he notranslate" style={{display:'block',marginTop:6,direction:'rtl',textAlign:'right'}}>ברוכים הבאים לעמוד חישוב הזכויות הסוציאליות של הקרן הישראלית. הקרן היא החברה הישראלית המובילה בשירות עובדים זרים בישראל, המתמחה בחישובים מדויקים של זכויות סוציאליות. לצד הקרן, צוות אנשי המקצוע המנוסים שלנו מחויב לספק חישובי שכר מדויקים, בהתאם מלא לחוק, לעובדים ולמעסיקים. לקבלת חישוב שכר מדויק, אנא מלאו את הטופס הבא.</span>
-          </p>
-          <p className="b">Hakeren the sole company that meticulously verifies your entitlements to ensure accurate salary assessments. Our commitment extends to confirming whether you have received the precise salary that aligns with your deserving job.
-            <span className="he notranslate" style={{display:'block',marginTop:6,direction:'rtl',textAlign:'right'}}>הקרן היא החברה היחידה שבודקת בקפידה את זכאותכם כדי להבטיח הערכת שכר מדויקת. המחויבות שלנו כוללת גם אימות שקיבלתם את השכר המדויק המתאים לתפקידכם.</span>
-          </p>
-        </div>
-
-        <div className="pay-notice">
-          <strong>Important - Payment Notice <span className="he notranslate">/ הודעה חשובה - תשלום</span></strong>
-          <span>Results will be provided <span style={{color:'#e65100',fontWeight:700}}>only to those who have paid by credit card (Upay)</span>. If you wish to pay by <span style={{color:'#e65100',fontWeight:700,textDecoration:'underline'}}>cash or bank transfer</span>, please pay by bank transfer and upload the payment confirmation at the following link: <a href="https://payment.hakeren.org.il" target="_blank" rel="noopener noreferrer" style={{color:'#1565c0',fontWeight:700}}>payment.hakeren.org.il</a></span>
-          <span className="he notranslate" style={{display:'block',marginTop:8,direction:'rtl',textAlign:'right'}}>התוצאות יימסרו רק למי ששילם/ה בכרטיס אשראי (Upay). אם ברצונך לשלם בהעברה בנקאית, יש לשלם בהעברה בנקאית ולהעלות את אישור התשלום בקישור: <a href="https://payment.hakeren.org.il" target="_blank" rel="noopener noreferrer" style={{color:'#1565c0',fontWeight:700}}>payment.hakeren.org.il</a></span>
-          <span style={{display:'block',marginTop:8,fontWeight:600}}>Phone: 050-5750054 | Phone: 072-2243333</span>
+          <h1><span className="he notranslate">גמר חשבון לעובד זר לסיעוד</span> | Final Settlement for a Foreign Caregiving Worker</h1>
+          {page===1&&<>
+            <div className="intro-he he notranslate">
+              <p>מחשבון זכויות אוטומטי. הכניסו את הנתונים לפי השלבים כדי לדעת כמה יש לשלם לעובד זר בסיעוד בסיום העסקה.</p>
+              <p>המחשבון פותח על ידי הקרן הישראלית לזכויות העובד הזר בע"מ ונותן מענה מושלם למעסיקים בסיעוד ולמטפלים סיעודיים לסיים ביחד, בכבוד, את ההעסקה.</p>
+              <p>תוצאות גמר החשבון יישלחו אליכם מיד לאחר סיום הכנסת הנתונים וביצוע התשלום. לתשלום בהעברה בנקאית ניתן להעלות אישור תשלום בקישור: <a href="https://payment.hakeren.org.il" target="_blank" rel="noopener noreferrer">payment.hakeren.org.il</a></p>
+              <p>לתשלום בטלפון: 072-2243333</p>
+            </div>
+            <div className="intro-en">
+              <p>An automatic rights calculator. Enter the details step by step to find out how much is owed to a foreign caregiving worker at the end of employment.</p>
+              <p>The calculator was developed by The Israeli Foundation for Foreign Worker Rights Ltd. and offers caregiving employers and caregivers a complete solution for ending the employment together, with dignity.</p>
+              <p>Your final-settlement results will be sent to you immediately after you finish entering the details and complete payment. To pay by bank transfer, you can upload your payment confirmation at: <a href="https://payment.hakeren.org.il" target="_blank" rel="noopener noreferrer">payment.hakeren.org.il</a></p>
+              <p>To pay by phone: 072-2243333</p>
+            </div>
+          </>}
         </div>
 
         {savedAt&&<div className="draft-bar">
