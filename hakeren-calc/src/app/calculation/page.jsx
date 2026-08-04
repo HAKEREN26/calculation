@@ -399,7 +399,10 @@ export default function App() {
   useEffect(() => {
     try {
       const d = localStorage.getItem(DRAFT_KEY);
-      if (d) { const p = JSON.parse(d); if (p.data) setF(p.data); }
+      // Merge onto INITIAL so drafts saved by an older form version (missing newer
+      // fields like deliveryMethods/deliveryEmails) still get valid defaults and
+      // don't crash the newer pages.
+      if (d) { const p = JSON.parse(d); if (p.data) setF({...INITIAL, ...p.data}); }
     } catch(e) {}
   }, []);
 
