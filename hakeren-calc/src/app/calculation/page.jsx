@@ -34,6 +34,10 @@ const INITIAL = {
   lastSalaryNeeded:'',lastSalaryDate:'',
   agreement:'no',
   agreementFile:null,agreementFileName:'',
+  deliveryMethods:[],           // ['email','whatsapp'] — at least one required
+  deliveryEmails:[''],          // one or more email addresses to receive results
+  deliveryWhatsapps:[''],       // one or more WhatsApp numbers to receive results
+  marketingConsent:false,       // must be true to submit
   comments:'',
 };
 
@@ -45,6 +49,9 @@ async function submitToMake(f) {
   const computedNoticeDays = (f.noticeDate && f.end)
     ? Math.max(0, Math.round((new Date(f.end) - new Date(f.noticeDate)) / 86400000))
     : (Number(f.noticeDaysGiven) || 0);
+  // Delivery preferences — only the selected channels, non-empty entries
+  const deliveryEmails = f.deliveryMethods.includes('email') ? f.deliveryEmails.map(x=>x.trim()).filter(Boolean) : [];
+  const deliveryWhatsapps = f.deliveryMethods.includes('whatsapp') ? f.deliveryWhatsapps.map(x=>x.trim()).filter(Boolean) : [];
   const payload = {
     // Flat fields for GAS calculation engine
     name: f.name,
@@ -96,6 +103,11 @@ async function submitToMake(f) {
     shabat: f.shabat ? Number(f.shabat) : null,
     passportFile: f.passportFile || null,
     passportFileName: f.passportFileName || null,
+    // Delivery preferences + consent (flat, ready to map to Google Sheets columns)
+    deliveryMethod: f.deliveryMethods.join(', '),
+    deliveryEmails: deliveryEmails.join(', '),
+    deliveryWhatsapps: deliveryWhatsapps.join(', '),
+    marketingConsent: f.marketingConsent ? 'yes' : 'no',
     // Nested structure for record keeping
     meta: {
       submitted_at: new Date().toISOString(),
@@ -173,6 +185,12 @@ async function submitToMake(f) {
       agreement_file: f.agreementFile || null,
       agreement_file_name: f.agreementFileName || null,
       comments: f.comments || null
+    },
+    delivery: {
+      methods: f.deliveryMethods,
+      emails: deliveryEmails,
+      whatsapps: deliveryWhatsapps,
+      marketing_consent: f.marketingConsent
     }
   };
 
@@ -253,15 +271,34 @@ function validatePage(page, f) {
     if (!f.lastSalaryNeeded)         errs.lastSalaryNeeded = 'Please answer this question';
     if (f.lastSalaryNeeded === 'yes' && !f.lastSalaryDate) errs.lastSalaryDate = 'Please enter the last salary date';
     if (f.comments.trim() && !isHeEnText(f.comments)) errs.comments = 'Hebrew or English letters only';
+
+    // Delivery method: at least one channel, with at least one valid entry each
+    if (!f.deliveryMethods || f.deliveryMethods.length === 0) {
+      errs.deliveryMethods = 'Please choose how to receive the results (Email or WhatsApp)';
+    } else {
+      if (f.deliveryMethods.includes('email')) {
+        const emails = f.deliveryEmails.filter(x => x.trim());
+        if (emails.length === 0) errs.deliveryEmails = 'Please enter at least one email address';
+        else if (!emails.every(isEmail)) errs.deliveryEmails = 'One of the email addresses is invalid';
+      }
+      if (f.deliveryMethods.includes('whatsapp')) {
+        const was = f.deliveryWhatsapps.filter(x => x.trim());
+        if (was.length === 0) errs.deliveryWhatsapps = 'Please enter at least one WhatsApp number';
+        else if (!was.every(isPhone)) errs.deliveryWhatsapps = 'One of the WhatsApp numbers is invalid';
+      }
+    }
+
+    // Marketing consent is mandatory before the form can be sent
+    if (!f.marketingConsent) errs.marketingConsent = 'You must agree before the results can be sent';
   }
 
   return errs;
 }
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap');
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:#fff;font-family:'Open Sans',sans-serif;color:#222}
+  body{background:#fff;font-family:'Assistant',sans-serif;color:#222}
   .pw{max-width:780px;margin:0 auto;padding:0 16px 40px}
   .hk-hdr{background:#fff;border-bottom:2px solid #1565c0;padding:14px 24px;position:sticky;top:0;z-index:100;text-align:center}
   .hk-hdr img{height:84px}
@@ -275,6 +312,9 @@ const css = `
   .hk-hero .intro-en{direction:ltr;text-align:left;padding-top:12px;border-top:1px solid #e0e8f5}
   .hk-hero .intro-he p,.hk-hero .intro-en p{margin-bottom:6px}
   .hk-hero .intro-he a,.hk-hero .intro-en a{color:#1565c0;font-weight:700}
+  .hk-hero .pay-line{font-size:12px;color:#555;background:#f5f8fc;border:1px solid #e0e8f5;border-radius:6px;padding:7px 10px;margin-top:4px;word-break:break-word}
+  .consent-box{background:#f5f8fc;border:1px solid #cdd8e8;border-radius:6px;padding:12px 14px;margin-top:14px}
+  .consent-box .chk-item{align-items:flex-start;font-size:13px;line-height:1.5}
   .hk-hdr a{display:inline-block;line-height:0}
   .pay-notice{background:#fff8e1;border:1px solid #ffd54f;border-left:4px solid #f9a825;border-radius:6px;padding:12px 16px;margin-bottom:18px;font-size:13px;line-height:1.6;color:#5d4037}
   .pay-notice strong:first-child{display:block;margin-bottom:4px}
@@ -419,6 +459,14 @@ export default function App() {
   const addV  = () => set('vacations', [...f.vacations, {dep:'',ret:''}]);
   const updV  = (i,k,v) => { const a=[...f.vacations]; a[i]={...a[i],[k]:v}; set('vacations',a); };
   const rmV   = i => set('vacations', f.vacations.filter((_,x)=>x!==i));
+  // Delivery-list helpers (multiple emails / multiple WhatsApp numbers)
+  const toggleDelivery = m => set('deliveryMethods', f.deliveryMethods.includes(m) ? f.deliveryMethods.filter(x=>x!==m) : [...f.deliveryMethods, m]);
+  const addEmail = () => set('deliveryEmails', [...f.deliveryEmails, '']);
+  const updEmail = (i,v) => { const a=[...f.deliveryEmails]; a[i]=v; set('deliveryEmails',a); };
+  const rmEmail  = i => set('deliveryEmails', f.deliveryEmails.filter((_,x)=>x!==i));
+  const addWa = () => set('deliveryWhatsapps', [...f.deliveryWhatsapps, '']);
+  const updWa = (i,v) => { const a=[...f.deliveryWhatsapps]; a[i]=v; set('deliveryWhatsapps',a); };
+  const rmWa  = i => set('deliveryWhatsapps', f.deliveryWhatsapps.filter((_,x)=>x!==i));
 
   const nats = ['Filipino','Romanian','Moldovan','Ukrainian','Russian','Sri Lankan','Chinese','Indian','Thai','Other'];
   const termOpts = [{v:'died',l:'Employer Died',he:'המעסיק נפטר'},{v:'fired',l:'Got Fired',he:'פוטר'},{v:'nursinghome',l:'Moved to a nursing home',he:'עבר לבית אבות'},{v:'resign',l:'Resigned',he:'התפטר'}];
@@ -467,19 +515,15 @@ export default function App() {
 
       <div className="pw">
         <div className="hk-hero">
-          <h1><span className="he notranslate">גמר חשבון לעובד זר לסיעוד</span> | Final Settlement for a Foreign Caregiving Worker</h1>
+          <h1><span className="he notranslate">גמר חשבון לעובד זר לסיעוד</span> | Calculation for caregivers</h1>
           {page===1&&<>
             <div className="intro-he he notranslate">
-              <p>מחשבון זכויות אוטומטי. הכניסו את הנתונים לפי השלבים כדי לדעת כמה יש לשלם לעובד זר בסיעוד בסיום העסקה.</p>
-              <p>המחשבון פותח על ידי הקרן הישראלית לזכויות העובד הזר בע"מ ונותן מענה מושלם למעסיקים בסיעוד ולמטפלים סיעודיים לסיים ביחד, בכבוד, את ההעסקה.</p>
-              <p>תוצאות גמר החשבון יישלחו אליכם מיד לאחר סיום הכנסת הנתונים וביצוע התשלום. לתשלום בהעברה בנקאית ניתן להעלות אישור תשלום בקישור: <a href="https://payment.hakeren.org.il" target="_blank" rel="noopener noreferrer">payment.hakeren.org.il</a></p>
-              <p>לתשלום בטלפון: 072-2243333</p>
+              <p><strong>מחשבון זכויות אוטומטי לעובדים זרים בסיעוד.</strong> הזינו את פרטי ההעסקה שלב אחר שלב וגלו כמה מגיע לעובד/ת בסיום ההעסקה. השירות פותח על ידי הקרן הישראלית לזכויות העובד הזר בע"מ כדי לעזור למטפלים ולמעסיקים לבצע את גמר החשבון בצורה ברורה ומכובדת. התוצאות יישלחו אליכם מיד לאחר התשלום.</p>
+              <p className="pay-line">תשלום באשראי: <a href="https://pay.sumit.co.il/xooxvp/yj6hfa/yj6hfb/payment" target="_blank" rel="noopener noreferrer">pay.sumit.co.il/xooxvp/yj6hfa/yj6hfb/payment</a> · העברה בנקאית: <a href="https://payment.hakeren.org.il" target="_blank" rel="noopener noreferrer">payment.hakeren.org.il</a> · תשלום בטלפון: 072-2243333</p>
             </div>
             <div className="intro-en">
-              <p>An automatic rights calculator. Enter the details step by step to find out how much is owed to a foreign caregiving worker at the end of employment.</p>
-              <p>The calculator was developed by The Israeli Foundation for Foreign Worker Rights Ltd. and offers caregiving employers and caregivers a complete solution for ending the employment together, with dignity.</p>
-              <p>Your final-settlement results will be sent to you immediately after you finish entering the details and complete payment. To pay by bank transfer, you can upload your payment confirmation at: <a href="https://payment.hakeren.org.il" target="_blank" rel="noopener noreferrer">payment.hakeren.org.il</a></p>
-              <p>To pay by phone: 072-2243333</p>
+              <p><strong>Automatic Rights Calculator for Foreign Caregivers.</strong> Enter your employment details step by step and find out how much you may be entitled to receive when your employment ends. The service was developed by HAKEREN Ltd. to help caregivers and employers complete the final settlement clearly and respectfully. Your results will be sent immediately after payment.</p>
+              <p className="pay-line">Credit card payment: <a href="https://pay.sumit.co.il/xooxvp/yj6hfa/yj6hfb/payment" target="_blank" rel="noopener noreferrer">pay.sumit.co.il/xooxvp/yj6hfa/yj6hfb/payment</a> · Bank transfer: <a href="https://payment.hakeren.org.il" target="_blank" rel="noopener noreferrer">payment.hakeren.org.il</a> · Phone payment: 072-2243333</p>
             </div>
           </>}
         </div>
@@ -663,9 +707,39 @@ export default function App() {
               {f.lastSalaryNeeded==='yes'&&<F label="Last date salary was paid" he="התאריך האחרון שבו שולם שכר" hint="The last date you received salary payment" err={E('lastSalaryDate')}>
                 <input {...inp('lastSalaryDate')} type="date" value={f.lastSalaryDate} onChange={e=>set('lastSalaryDate',e.target.value)}/>
               </F>}
+              <div className="field" style={{marginTop:12}}>
+                <label style={{fontWeight:700,color:'#1565c0'}}>Where would you like to receive the calculation? <span className="he notranslate">/ לאן תרצו לקבל את החישוב?</span> <span className="req-star">*</span></label>
+                <ChkGrp opts={[{v:'email',l:'Email',he:'מייל'},{v:'whatsapp',l:'WhatsApp',he:'וואטסאפ'}]} vals={f.deliveryMethods} on={v=>set('deliveryMethods',v)}/>
+                <Err msg={E('deliveryMethods')}/>
+              </div>
+              {f.deliveryMethods.includes('email')&&<div className="field">
+                <label>Email address(es) for the results <span className="he notranslate">/ כתובת/ות מייל לקבלת התוצאות</span></label>
+                {f.deliveryEmails.map((em,i)=><div key={i} style={{display:'flex',gap:6,marginBottom:6}}>
+                  <input {...inp('deliveryEmails')} type="email" maxLength={EMAIL_MAX_LEN} value={em} onChange={e=>updEmail(i,e.target.value)} placeholder="worker@example.com"/>
+                  {f.deliveryEmails.length>1&&<button type="button" className="btn-o" style={{padding:'0 12px'}} onClick={()=>rmEmail(i)}>X</button>}
+                </div>)}
+                <button type="button" className="add-btn" onClick={addEmail}>+ Add email <span className="he notranslate">/ הוספת מייל</span></button>
+                <Err msg={E('deliveryEmails')}/>
+              </div>}
+              {f.deliveryMethods.includes('whatsapp')&&<div className="field">
+                <label>WhatsApp number(s) for the results <span className="he notranslate">/ מספר/י וואטסאפ לקבלת התוצאות</span></label>
+                {f.deliveryWhatsapps.map((wa,i)=><div key={i} style={{display:'flex',gap:6,marginBottom:6}}>
+                  <input {...inp('deliveryWhatsapps')} type="tel" maxLength={PHONE_MAX_LEN} value={wa} onChange={e=>updWa(i,e.target.value)} placeholder="05X-XXXXXXX"/>
+                  {f.deliveryWhatsapps.length>1&&<button type="button" className="btn-o" style={{padding:'0 12px'}} onClick={()=>rmWa(i)}>X</button>}
+                </div>)}
+                <button type="button" className="add-btn" onClick={addWa}>+ Add WhatsApp number <span className="he notranslate">/ הוספת מספר וואטסאפ</span></button>
+                <Err msg={E('deliveryWhatsapps')}/>
+              </div>}
               <F label="Additional comments or information:" he="הערות או מידע נוסף:" hint="Hebrew or English letters only / עברית או אנגלית בלבד" err={E('comments')}>
                 <textarea {...inp('comments')} style={{...inp('comments').style,minHeight:80,resize:'vertical'}} value={f.comments} onChange={e=>set('comments',e.target.value)}/>
               </F>
+              <div className="field consent-box">
+                <label className="chk-item" style={{alignItems:'flex-start'}}>
+                  <input type="checkbox" checked={f.marketingConsent} onChange={e=>set('marketingConsent',e.target.checked)} style={{marginTop:3}}/>
+                  <span>I agree to receive the calculation results and related information and promotional messages. <span className="he notranslate">/ אני מאשר/ת קבלת תוצאות החישוב וכן מידע והודעות פרסומיות.</span></span>
+                </label>
+                <Err msg={E('marketingConsent')}/>
+              </div>
             </>}
 
             {/* Navigation */}
