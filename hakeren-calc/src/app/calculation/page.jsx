@@ -715,24 +715,48 @@ export default function App() {
                 <ChkGrp opts={[{v:'email',l:'Email',he:'מייל'},{v:'whatsapp',l:'WhatsApp',he:'וואטסאפ'}]} vals={f.deliveryMethods} on={v=>set('deliveryMethods',v)}/>
                 <Err msg={E('deliveryMethods')}/>
               </div>
-              {f.deliveryMethods.includes('email')&&<div className="field">
-                <label>Email address(es) for the results <span className="he notranslate">/ כתובת/ות מייל לקבלת התוצאות</span></label>
-                {f.deliveryEmails.map((em,i)=><div key={i} style={{display:'flex',gap:6,marginBottom:6}}>
-                  <input {...inp('deliveryEmails')} type="email" maxLength={EMAIL_MAX_LEN} value={em} onChange={e=>updEmail(i,e.target.value)} placeholder="worker@example.com"/>
-                  {f.deliveryEmails.length>1&&<button type="button" className="btn-o" style={{padding:'0 12px'}} onClick={()=>rmEmail(i)}>X</button>}
-                </div>)}
-                <button type="button" className="add-btn" onClick={addEmail}>+ Add email <span className="he notranslate">/ הוספת מייל</span></button>
-                <Err msg={E('deliveryEmails')}/>
-              </div>}
-              {f.deliveryMethods.includes('whatsapp')&&<div className="field">
-                <label>WhatsApp number(s) for the results <span className="he notranslate">/ מספר/י וואטסאפ לקבלת התוצאות</span></label>
-                {f.deliveryWhatsapps.map((wa,i)=><div key={i} style={{display:'flex',gap:6,marginBottom:6}}>
-                  <input {...inp('deliveryWhatsapps')} type="tel" maxLength={PHONE_MAX_LEN} value={wa} onChange={e=>updWa(i,e.target.value)} placeholder="05X-XXXXXXX"/>
-                  {f.deliveryWhatsapps.length>1&&<button type="button" className="btn-o" style={{padding:'0 12px'}} onClick={()=>rmWa(i)}>X</button>}
-                </div>)}
-                <button type="button" className="add-btn" onClick={addWa}>+ Add WhatsApp number <span className="he notranslate">/ הוספת מספר וואטסאפ</span></button>
-                <Err msg={E('deliveryWhatsapps')}/>
-              </div>}
+              {f.deliveryMethods.includes('email')&&(()=>{
+                const entryStyle = bad => ({flex:1,padding:'9px 11px',border:`1.5px solid ${bad?'#e53935':'#ccc'}`,borderRadius:5,fontSize:13,fontFamily:'inherit',color:'#222',background:bad?'#fff5f5':'#fafafa',outline:'none'});
+                const lastEmail = (f.deliveryEmails[f.deliveryEmails.length-1]||'').trim();
+                const canAddEmail = lastEmail && isEmail(lastEmail);
+                return <div className="field">
+                  <label>Email address(es) for the results <span className="he notranslate">/ כתובת/ות מייל לקבלת התוצאות</span></label>
+                  {f.deliveryEmails.map((em,i)=>{
+                    const bad = em.trim() && !isEmail(em.trim());
+                    return <div key={i} style={{marginBottom:6}}>
+                      <div style={{display:'flex',gap:6}}>
+                        <input type="email" maxLength={EMAIL_MAX_LEN} value={em} onChange={e=>updEmail(i,e.target.value)} placeholder="worker@example.com" style={entryStyle(bad)}/>
+                        {f.deliveryEmails.length>1&&<button type="button" className="btn-o" style={{padding:'0 12px'}} onClick={()=>rmEmail(i)}>X</button>}
+                      </div>
+                      {bad&&<p className="errmsg">Enter a valid email address <span className="he notranslate">/ יש להזין כתובת מייל תקינה</span></p>}
+                    </div>;
+                  })}
+                  <button type="button" className="add-btn" disabled={!canAddEmail} style={canAddEmail?{}:{opacity:0.5,cursor:'not-allowed'}} onClick={()=>{if(canAddEmail)addEmail();}}>+ Add email <span className="he notranslate">/ הוספת מייל</span></button>
+                  {!canAddEmail&&<p className="hint">Enter a valid email to add another <span className="he notranslate">/ הזינו מייל תקין כדי להוסיף עוד</span></p>}
+                  <Err msg={E('deliveryEmails')}/>
+                </div>;
+              })()}
+              {f.deliveryMethods.includes('whatsapp')&&(()=>{
+                const entryStyle = bad => ({flex:1,padding:'9px 11px',border:`1.5px solid ${bad?'#e53935':'#ccc'}`,borderRadius:5,fontSize:13,fontFamily:'inherit',color:'#222',background:bad?'#fff5f5':'#fafafa',outline:'none'});
+                const lastWa = (f.deliveryWhatsapps[f.deliveryWhatsapps.length-1]||'').trim();
+                const canAddWa = lastWa && isPhone(lastWa);
+                return <div className="field">
+                  <label>WhatsApp number(s) for the results <span className="he notranslate">/ מספר/י וואטסאפ לקבלת התוצאות</span></label>
+                  {f.deliveryWhatsapps.map((wa,i)=>{
+                    const bad = wa.trim() && !isPhone(wa.trim());
+                    return <div key={i} style={{marginBottom:6}}>
+                      <div style={{display:'flex',gap:6}}>
+                        <input type="tel" maxLength={PHONE_MAX_LEN} value={wa} onChange={e=>updWa(i,e.target.value)} placeholder="05X-XXXXXXX" style={entryStyle(bad)}/>
+                        {f.deliveryWhatsapps.length>1&&<button type="button" className="btn-o" style={{padding:'0 12px'}} onClick={()=>rmWa(i)}>X</button>}
+                      </div>
+                      {bad&&<p className="errmsg">Enter a valid phone number <span className="he notranslate">/ יש להזין מספר טלפון תקין</span></p>}
+                    </div>;
+                  })}
+                  <button type="button" className="add-btn" disabled={!canAddWa} style={canAddWa?{}:{opacity:0.5,cursor:'not-allowed'}} onClick={()=>{if(canAddWa)addWa();}}>+ Add WhatsApp number <span className="he notranslate">/ הוספת מספר וואטסאפ</span></button>
+                  {!canAddWa&&<p className="hint">Enter a valid number to add another <span className="he notranslate">/ הזינו מספר תקין כדי להוסיף עוד</span></p>}
+                  <Err msg={E('deliveryWhatsapps')}/>
+                </div>;
+              })()}
               <F label="Additional comments or information:" he="הערות או מידע נוסף:" hint="Hebrew or English letters only / עברית או אנגלית בלבד" err={E('comments')}>
                 <textarea {...inp('comments')} style={{...inp('comments').style,minHeight:80,resize:'vertical'}} value={f.comments} onChange={e=>set('comments',e.target.value)}/>
               </F>
