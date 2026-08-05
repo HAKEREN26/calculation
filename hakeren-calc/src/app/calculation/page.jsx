@@ -240,8 +240,6 @@ function validatePage(page, f) {
     else if (f.end) { var ey = new Date(f.end).getFullYear(); if (ey < 1950 || ey > 2100) errs.end = 'Year must be between 1950-2100'; }
     if (f.start && f.end && f.end < f.start) errs.end = 'End date must be after start date';
     if (!f.termReason)              errs.termReason = 'Select a reason';
-    if (f.termReason === 'resign' && f.resignReason.length === 0)
-                                    errs.resignReason = 'Please select reason for resignation';
     if (!f.noticeDate)              errs.noticeDate = 'Notice date is required';
     if (!f.salary)                  errs.salary = 'Salary is required';
     else if (!isPosNum(f.salary))   errs.salary = 'Enter a valid amount';
@@ -270,7 +268,6 @@ function validatePage(page, f) {
     if (f.holidayDaysWorked === '' || f.holidayDaysWorked === undefined) errs.holidayDaysWorked = 'Please enter number of holiday days (0-9)';
     if (!f.lastSalaryNeeded)         errs.lastSalaryNeeded = 'Please answer this question';
     if (f.lastSalaryNeeded === 'yes' && !f.lastSalaryDate) errs.lastSalaryDate = 'Please enter the last salary date';
-    if (f.comments.trim() && !isHeEnText(f.comments)) errs.comments = 'Hebrew or English letters only';
 
     // Delivery method: at least one channel, with at least one valid entry each
     if (!f.deliveryMethods || f.deliveryMethods.length === 0) {
@@ -473,7 +470,6 @@ export default function App() {
 
   const nats = ['Filipino','Romanian','Moldovan','Ukrainian','Russian','Sri Lankan','Chinese','Indian','Thai','Other'];
   const termOpts = [{v:'died',l:'Employer Died',he:'המעסיק נפטר'},{v:'fired',l:'Got Fired',he:'פוטר'},{v:'nursinghome',l:'Moved to a nursing home',he:'עבר לבית אבות'},{v:'resign',l:'Resigned',he:'התפטר'}];
-  const resignOpts = [{v:'nopay',l:"They didn't pay me",he:'לא שילמו לי'},{v:'sick',l:"I'm sick (medical)",he:'אני חולה (רפואי)'},{v:'harassment',l:'Sexual harassment',he:'הטרדה מינית'},{v:'other',l:'Other reason',he:'סיבה אחרת'}];
   const contactOpts = [{v:'son',l:'Son',he:'בן'},{v:'daughter',l:'Daughter',he:'בת'},{v:'niece',l:'Niece/Nephew',he:'אחיין/ית'},{v:'wife',l:'Wife',he:'אישה'},{v:'husband',l:'Husband',he:'בעל'},{v:'social',l:'Social Worker',he:'עובד/ת סוציאלי/ת'}];
   const holidayTypeOpts = [{v:'jewish',l:'Jewish',he:'יהודי'},{v:'christian_catholic',l:'Christian Catholic',he:'נוצרי קתולי'},{v:'christian_orthodox',l:'Christian Orthodox',he:'נוצרי אורתודוקסי'},{v:'thailand',l:'Thailand',he:'תאילנד'},{v:'india',l:'India',he:'הודו'},{v:'srilanka',l:'Sri Lanka',he:'סרי לנקה'},{v:'romania',l:'Romania',he:'רומניה'},{v:'ukraine',l:'Ukraine',he:'אוקראינה'}];
   const inp = (k, extra) => {
@@ -589,11 +585,6 @@ export default function App() {
                 <Chips opts={termOpts} val={f.termReason} on={v=>set('termReason',v)} hasErr={showErrs&&!f.termReason}/>
                 <Err msg={E('termReason')}/>
               </div>
-              {f.termReason==='resign'&&<div className="field">
-                <label style={{fontWeight:700,color:'#1565c0'}}>Why did you resign? <span className="he notranslate">/ מדוע התפטרת?</span> <span className="req-star">*</span></label>
-                <ChkGrp opts={resignOpts} vals={f.resignReason} on={v=>set('resignReason',v)}/>
-                <Err msg={E('resignReason')}/>
-              </div>}
               <F label="When did you provide or receive advance notice?" he="מתי ניתנה או התקבלה הודעה מוקדמת?" req hint="Advance-notice days are calculated automatically from this date / ימי ההודעה המוקדמת מחושבים אוטומטית מתאריך זה" err={E('noticeDate')}>
                 <input {...inp('noticeDate')} type="date" value={f.noticeDate} onChange={e=>set('noticeDate',e.target.value)}/>
               </F>
@@ -757,13 +748,10 @@ export default function App() {
                   <Err msg={E('deliveryWhatsapps')}/>
                 </div>;
               })()}
-              <F label="Additional comments or information:" he="הערות או מידע נוסף:" hint="Hebrew or English letters only / עברית או אנגלית בלבד" err={E('comments')}>
-                <textarea {...inp('comments')} style={{...inp('comments').style,minHeight:80,resize:'vertical'}} value={f.comments} onChange={e=>set('comments',e.target.value)}/>
-              </F>
               <div className="field consent-box">
                 <label className="chk-item" style={{alignItems:'flex-start'}}>
                   <input type="checkbox" checked={f.marketingConsent} onChange={e=>set('marketingConsent',e.target.checked)} style={{marginTop:3}}/>
-                  <span>I agree to receive the calculation results and related information and promotional messages. <span className="he notranslate">/ אני מאשר/ת קבלת תוצאות החישוב וכן מידע והודעות פרסומיות.</span></span>
+                  <span>I agree to receive the calculation results, related information and promotional messages. <span className="he notranslate">/ אני מאשר/ת קבלת תוצאות החישוב, מידע והודעות פרסומיות.</span></span>
                 </label>
                 <Err msg={E('marketingConsent')}/>
               </div>
