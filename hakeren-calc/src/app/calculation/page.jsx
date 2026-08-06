@@ -301,15 +301,21 @@ const css = `
   .hk-hdr img{height:84px}
   .hk-hdr-side{position:absolute;top:50%;right:24px;transform:translateY(-50%);display:flex;align-items:center;gap:12px}
   @media(max-width:700px){.hk-hdr-side{position:static;transform:none;justify-content:center;margin-top:8px}}
-  .hk-hero{padding:24px 0 18px;border-bottom:1px solid #e0e8f5;margin-bottom:20px}
-  .hk-hero h1{font-size:20px;font-weight:700;color:#1565c0;margin-bottom:12px;text-align:center}
-  .hk-hero p{font-size:13px;color:#444;line-height:1.7;margin-bottom:8px}
-  .hk-hero p.b{font-weight:700;color:#1565c0}
-  .hk-hero .intro-he{direction:rtl;text-align:right;margin-bottom:14px}
-  .hk-hero .intro-en{direction:ltr;text-align:left;padding-top:12px;border-top:1px solid #e0e8f5}
-  .hk-hero .intro-he p,.hk-hero .intro-en p{margin-bottom:6px}
-  .hk-hero .intro-he a,.hk-hero .intro-en a{color:#1565c0;font-weight:700}
-  .hk-hero .pay-line{font-size:12px;color:#555;background:#f5f8fc;border:1px solid #e0e8f5;border-radius:6px;padding:7px 10px;margin-top:4px;word-break:break-word}
+  .hk-hero{padding:20px 0 16px;margin-bottom:18px}
+  .hk-hero h1{font-size:23px;font-weight:700;color:#1266f6;margin-bottom:16px;text-align:center;letter-spacing:-0.2px}
+  /* Framed intro card — matches hakeren.org.il (bright blue + warm orange accents) */
+  .intro-card{background:#fff;border:1px solid #dbe7fb;border-radius:14px;box-shadow:0 6px 22px rgba(18,102,246,0.10);overflow:hidden}
+  .intro-card .intro-accent{height:5px;background:linear-gradient(90deg,#1266f6,#00b2ff 55%,#ff9635)}
+  .intro-card .intro-body{padding:18px 22px}
+  .intro-card .intro-he{direction:rtl;text-align:right}
+  .intro-card .intro-en{direction:ltr;text-align:left;margin-top:14px;padding-top:14px;border-top:1px dashed #dbe7fb}
+  .intro-card .lead{display:block;font-size:16px;font-weight:700;color:#1266f6;margin-bottom:6px}
+  .intro-card p{font-size:13.5px;color:#3a3a3a;line-height:1.75;margin:0}
+  .intro-card a{color:#1266f6;font-weight:700;text-decoration:none}
+  .intro-card a:hover{text-decoration:underline}
+  .pay-strip{background:#eef7ff;border:1px solid #cfe4fb;border-radius:10px;padding:10px 13px;margin-top:10px;font-size:12.5px;color:#3a3a3a;line-height:1.9}
+  .pay-strip .pay-row{display:block;word-break:break-word}
+  .pay-strip .pay-label{color:#ff7a1a;font-weight:700;margin-inline-end:4px}
   .consent-box{background:#f5f8fc;border:1px solid #cdd8e8;border-radius:6px;padding:12px 14px;margin-top:14px}
   .consent-box .chk-item{align-items:flex-start;font-size:13px;line-height:1.5}
   .hk-hdr a{display:inline-block;line-height:0}
@@ -362,7 +368,7 @@ const css = `
   .hk-ftr .ftr-he{max-width:720px;margin:0 auto;direction:rtl;padding-top:6px;border-top:1px solid #dde5ee}
   .progress-bar{height:4px;background:#e0e8f5;margin-bottom:0}
   .progress-fill{height:100%;background:#1565c0;transition:width 0.3s}
-  @media(max-width:600px){.g2,.g3{grid-template-columns:1fr}.hk-hero h1{font-size:16px}}
+  @media(max-width:600px){.g2,.g3{grid-template-columns:1fr}.hk-hero h1{font-size:17px}.hk-hdr img{height:58px}.intro-card .intro-body{padding:14px 15px}}
 `;
 
 function Chips({opts, val, on, hasErr}) {
@@ -515,16 +521,29 @@ export default function App() {
       <div className="pw">
         <div className="hk-hero">
           <h1><span className="he notranslate">גמר חשבון לעובד זר לסיעוד</span> | Calculation for caregivers</h1>
-          {page===1&&<>
-            <div className="intro-he he notranslate">
-              <p><strong>מחשבון זכויות אוטומטי לעובדים זרים בסיעוד.</strong> הזינו את פרטי ההעסקה שלב אחר שלב וגלו כמה מגיע לעובד/ת בסיום ההעסקה. השירות פותח על ידי הקרן הישראלית לזכויות העובד הזר בע"מ כדי לעזור למטפלים ולמעסיקים לבצע את גמר החשבון בצורה ברורה ומכובדת. התוצאות יישלחו אליכם מיד לאחר התשלום.</p>
-              <p className="pay-line">תשלום באשראי: <a href="https://pay.sumit.co.il/xooxvp/yj6hfa/yj6hfb/payment" target="_blank" rel="noopener noreferrer">pay.sumit.co.il/xooxvp/yj6hfa/yj6hfb/payment</a> · העברה בנקאית: <a href="https://payment.hakeren.org.il" target="_blank" rel="noopener noreferrer">payment.hakeren.org.il</a> · תשלום בטלפון: 072-2243333</p>
+          {page===1&&<div className="intro-card">
+            <div className="intro-accent"/>
+            <div className="intro-body">
+              <div className="intro-he he notranslate">
+                <span className="lead">מחשבון זכויות אוטומטי לעובדים זרים בסיעוד</span>
+                <p>הזינו את פרטי ההעסקה שלב אחר שלב וגלו כמה מגיע לעובד/ת בסיום ההעסקה. השירות פותח על ידי הקרן הישראלית לזכויות העובד הזר בע"מ כדי לעזור למטפלים ולמעסיקים לבצע את גמר החשבון בצורה ברורה ומכובדת. התוצאות יישלחו אליכם מיד לאחר התשלום.</p>
+                <div className="pay-strip">
+                  <span className="pay-row"><span className="pay-label">תשלום באשראי:</span><a href="https://pay.sumit.co.il/xooxvp/yj6hfa/yj6hfb/payment" target="_blank" rel="noopener noreferrer">pay.sumit.co.il/xooxvp/yj6hfa/yj6hfb/payment</a></span>
+                  <span className="pay-row"><span className="pay-label">העברה בנקאית:</span><a href="https://payment.hakeren.org.il" target="_blank" rel="noopener noreferrer">payment.hakeren.org.il</a></span>
+                  <span className="pay-row"><span className="pay-label">תשלום בטלפון:</span>072-2243333</span>
+                </div>
+              </div>
+              <div className="intro-en">
+                <span className="lead">Automatic Rights Calculator for Foreign Caregivers</span>
+                <p>Enter your employment details step by step and find out how much you may be entitled to receive when your employment ends. The service was developed by HAKEREN Ltd. to help caregivers and employers complete the final settlement clearly and respectfully. Your results will be sent immediately after payment.</p>
+                <div className="pay-strip">
+                  <span className="pay-row"><span className="pay-label">Credit card:</span><a href="https://pay.sumit.co.il/xooxvp/yj6hfa/yj6hfb/payment" target="_blank" rel="noopener noreferrer">pay.sumit.co.il/xooxvp/yj6hfa/yj6hfb/payment</a></span>
+                  <span className="pay-row"><span className="pay-label">Bank transfer:</span><a href="https://payment.hakeren.org.il" target="_blank" rel="noopener noreferrer">payment.hakeren.org.il</a></span>
+                  <span className="pay-row"><span className="pay-label">Phone payment:</span>072-2243333</span>
+                </div>
+              </div>
             </div>
-            <div className="intro-en">
-              <p><strong>Automatic Rights Calculator for Foreign Caregivers.</strong> Enter your employment details step by step and find out how much you may be entitled to receive when your employment ends. The service was developed by HAKEREN Ltd. to help caregivers and employers complete the final settlement clearly and respectfully. Your results will be sent immediately after payment.</p>
-              <p className="pay-line">Credit card payment: <a href="https://pay.sumit.co.il/xooxvp/yj6hfa/yj6hfb/payment" target="_blank" rel="noopener noreferrer">pay.sumit.co.il/xooxvp/yj6hfa/yj6hfb/payment</a> · Bank transfer: <a href="https://payment.hakeren.org.il" target="_blank" rel="noopener noreferrer">payment.hakeren.org.il</a> · Phone payment: 072-2243333</p>
-            </div>
-          </>}
+          </div>}
         </div>
 
         {savedAt&&<div className="draft-bar">
