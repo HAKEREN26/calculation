@@ -405,7 +405,7 @@ export default function App() {
   const updV  = (i,k,v) => { const a=[...f.vacations]; a[i]={...a[i],[k]:v}; set('vacations',a); };
   const rmV   = i => set('vacations', f.vacations.filter((_,x)=>x!==i));
 
-  const nats = ['Filipino','Romanian','Moldovan','Ukrainian','Russian','Sri Lankan','Chinese','Indian','Thai','Other'];
+  const nats = ['Filipino','Romanian','Moldovan','Ukrainian','Russian','Chinese','Indian','Thai','Nepali','Georgian','Uzbek','Azerbaijani','Kazakh','Belarusian','Ethiopian','Eritrean','Nigerian','Kenyan','South African','Ugandan','Tanzanian','Sudanese','South Sudanese','Ghanaian','Colombian','Venezuelan','Brazilian','Argentinian','Bangladeshi','Myanmarese','Vietnamese','Turkish','Jordanian','Egyptian','Israeli','Sri Lankan','Peruvian','Other'];
   const termOpts = [{v:'died',l:'Employer Died'},{v:'fired',l:'Got Fired'},{v:'resign',l:'Resigned'}];
   const resignOpts = [{v:'nopay',l:"They didn't pay me"},{v:'sick',l:"I'm sick (medical)"},{v:'harassment',l:'Sexual harassment'},{v:'other',l:'Other reason'}];
   const contactOpts = [{v:'son',l:'Son'},{v:'daughter',l:'Daughter'},{v:'niece',l:'Niece/Nephew'},{v:'wife',l:'Wife'},{v:'husband',l:'Husband'},{v:'social',l:'Social Worker'}];
