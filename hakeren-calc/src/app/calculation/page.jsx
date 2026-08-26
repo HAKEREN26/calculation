@@ -474,7 +474,7 @@ export default function App() {
   const updWa = (i,v) => { const a=[...f.deliveryWhatsapps]; a[i]=v; set('deliveryWhatsapps',a); };
   const rmWa  = i => set('deliveryWhatsapps', f.deliveryWhatsapps.filter((_,x)=>x!==i));
 
-  const nats = ['Filipino','Romanian','Moldovan','Ukrainian','Russian','Sri Lankan','Chinese','Indian','Thai','Other'];
+  const nats = ['Filipino','Romanian','Moldovan','Ukrainian','Russian','Chinese','Indian','Thai','Nepali','Georgian','Uzbek','Azerbaijani','Kazakh','Belarusian','Ethiopian','Eritrean','Nigerian','Kenyan','South African','Ugandan','Tanzanian','Sudanese','South Sudanese','Ghanaian','Colombian','Venezuelan','Brazilian','Argentinian','Bangladeshi','Myanmarese','Vietnamese','Turkish','Jordanian','Egyptian','Israeli','Sri Lankan','Peruvian','Other'];
   const termOpts = [{v:'died',l:'Employer Died',he:'המעסיק נפטר'},{v:'fired',l:'Got Fired',he:'פוטר'},{v:'nursinghome',l:'Moved to a nursing home',he:'עבר לבית אבות'},{v:'resign',l:'Resigned',he:'התפטר'}];
   const contactOpts = [{v:'son',l:'Son',he:'בן'},{v:'daughter',l:'Daughter',he:'בת'},{v:'niece',l:'Niece/Nephew',he:'אחיין/ית'},{v:'wife',l:'Wife',he:'אישה'},{v:'husband',l:'Husband',he:'בעל'},{v:'social',l:'Social Worker',he:'עובד/ת סוציאלי/ת'}];
   const holidayTypeOpts = [{v:'jewish',l:'Jewish',he:'יהודי'},{v:'christian_catholic',l:'Christian Catholic',he:'נוצרי קתולי'},{v:'christian_orthodox',l:'Christian Orthodox',he:'נוצרי אורתודוקסי'},{v:'thailand',l:'Thailand',he:'תאילנד'},{v:'india',l:'India',he:'הודו'},{v:'srilanka',l:'Sri Lanka',he:'סרי לנקה'},{v:'romania',l:'Romania',he:'רומניה'},{v:'ukraine',l:'Ukraine',he:'אוקראינה'}];
