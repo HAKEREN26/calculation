@@ -322,6 +322,14 @@ const css = `
   .pay-notice{background:#fff8e1;border:1px solid #ffd54f;border-left:4px solid #f9a825;border-radius:6px;padding:12px 16px;margin-bottom:18px;font-size:13px;line-height:1.6;color:#5d4037}
   .pay-notice strong:first-child{display:block;margin-bottom:4px}
   .pay-notice strong{color:#e65100}
+  .wa-help{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;background:#25d366;color:#fff;text-decoration:none;padding:14px 18px;border-radius:10px;margin-bottom:18px;box-shadow:0 3px 12px rgba(37,211,102,.35);transition:background .2s,transform .1s}
+  .wa-help:hover{background:#1eb955}
+  .wa-help:active{transform:scale(.99)}
+  .wa-help svg{flex-shrink:0}
+  .wa-help .wa-txt{display:flex;flex-direction:column;gap:2px;line-height:1.45}
+  .wa-help .wa-he{direction:rtl;unicode-bidi:isolate;font-size:16px;font-weight:700;color:#fff}
+  .wa-help .wa-en{font-size:13px;font-weight:600;color:#fff;opacity:.95}
+  @media(max-width:600px){.wa-help{padding:12px 14px;gap:10px}.wa-help .wa-he{font-size:14px}.wa-help .wa-en{font-size:12px}}
   .draft-bar{display:flex;align-items:center;gap:10px;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#2e7d32}
   .draft-bar button{padding:5px 12px;border:1px solid #2e7d32;border-radius:4px;background:#fff;color:#2e7d32;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600}
   .fc{border:1px solid #cdd8e8;border-radius:4px;overflow:hidden;margin-bottom:20px}
@@ -557,6 +565,15 @@ export default function App() {
           {Object.values(errs).slice(0,3).map((e,i)=><div key={i}>-{e}</div>)}
           {Object.keys(errs).length>3&&<div>-...and {Object.keys(errs).length-3} more</div>}
         </div>}
+
+        {/* WhatsApp help - above the form on every page */}
+        <a className="wa-help notranslate" translate="no" href="https://wa.me/972586707126" target="_blank" rel="noopener noreferrer">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          <span className="wa-txt">
+            <span className="wa-he">לעזרה במילוי הטופס לחצו כאן</span>
+            <span className="wa-en">Need help filling out the form? Click here</span>
+          </span>
+        </a>
 
         <div className="fc">
           <div className="fc-hdr">
