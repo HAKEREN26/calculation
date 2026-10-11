@@ -39,9 +39,39 @@ const INITIAL = {
   deliveryWhatsapps:[''],       // one or more WhatsApp numbers to receive results
   marketingConsent:false,       // must be true to submit
   comments:'',
+  sessionId:'',                 // set on first "Next" — ties partial saves to the final submission
 };
 
 const WEBHOOK_URL = "https://hook.eu1.make.com/0oubj2kli3e49csk3rrxnobvsj52hxuj";
+// Receives everything filled in so far each time a page is completed
+// (status 'partial'), and a 'completed' ping on final submission — so people
+// who start the form and never submit it can be followed up.
+const PARTIAL_WEBHOOK_URL = "https://hook.eu1.make.com/bza7kvi4vncwdjplw71j4ch5dampjn9b";
+
+function newSessionId() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2,12)}`;
+}
+
+// Fire-and-forget: a failed progress save must never block the person filling the form.
+function sendProgress(f, status, reachedPage) {
+  try {
+    // Uploaded files are base64 and can be several MB — send only their names.
+    const { passportFile, agreementFile, sessionId, ...fields } = f;
+    fetch(PARTIAL_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
+      body: JSON.stringify({
+        session_id: sessionId,
+        status,
+        reached_page: reachedPage,
+        timestamp: new Date().toISOString(),
+        ...fields
+      })
+    }).catch(() => {});
+  } catch(e) {}
+}
 
 async function submitToMake(f) {
   // Advance-notice days are no longer asked in the form — derive them from the notice
@@ -460,7 +490,12 @@ export default function App() {
     }
     setShowErrs(false);
     setTouched({});
-    saveDraft();
+    const sessionId = f.sessionId || newSessionId();
+    const next = {...f, sessionId};
+    setF(next);
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({data:next, savedAt:new Date().toISOString()}));
+    setSavedAt(new Date().toLocaleTimeString());
+    sendProgress(next, 'partial', page+1);
     setPage(p => p+1);
     topRef.current?.scrollIntoView({behavior:'smooth'});
   };
@@ -816,6 +851,7 @@ export default function App() {
                       setSendError(null);
                       try {
                         await submitToMake(f);
+                        sendProgress(f, 'completed', 3);
                         localStorage.removeItem(DRAFT_KEY);
                         setSubmitted(true);
                       } catch(e) {
