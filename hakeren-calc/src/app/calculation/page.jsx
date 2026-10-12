@@ -45,8 +45,9 @@ const INITIAL = {
 const WEBHOOK_URL = "https://hook.eu1.make.com/0oubj2kli3e49csk3rrxnobvsj52hxuj";
 // Receives everything filled in so far each time a page is completed
 // (status 'partial'), and a 'completed' ping on final submission — so people
-// who start the form and never submit it can be followed up.
-const PARTIAL_WEBHOOK_URL = "https://hook.eu1.make.com/bza7kvi4vncwdjplw71j4ch5dampjn9b";
+// who start the form and never submit it can be followed up. This is a Google
+// Apps Script web app that keeps one row per session in the fund's sheet.
+const PROGRESS_URL = "https://script.google.com/macros/s/AKfycbwcorJ4_T5psQNBTk9HDc9yQx1EogJcacdVbqPUQ8yr4uJS-QVcT16blmINnU7ppNukTA/exec";
 
 function newSessionId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -58,9 +59,12 @@ function sendProgress(f, status, reachedPage) {
   try {
     // Uploaded files are base64 and can be several MB — send only their names.
     const { passportFile, agreementFile, sessionId, ...fields } = f;
-    fetch(PARTIAL_WEBHOOK_URL, {
+    // Apps Script web apps can't answer a CORS preflight, so this goes out as a
+    // "simple" request (text/plain, no-cors); the script parses the body as JSON.
+    fetch(PROGRESS_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       keepalive: true,
       body: JSON.stringify({
         session_id: sessionId,
